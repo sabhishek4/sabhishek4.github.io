@@ -1,0 +1,49 @@
+
+#importing the backend function
+source("~home/descriptive_macro v3.r")
+
+#the input dataframe
+ADS<-read.csv(file = file.choose())
+
+#creating the labels for the variable names
+sheet1_labels <- c() 
+
+
+#creating the descriptives
+sheet1_descr <- descriptive(ADS,
+                      vars=c(), #Add variable list
+                      strata=c(""), #Add stratification variable
+                      type="", #Add type of variable for which descriptive is to be generated i.e. "categorical", "binary" or "continuous"
+                      vars_label = sheet1_labels
+					  )
+
+
+sheet2_labels <- c()
+
+sheet2_descr <- descriptive(ADS,
+                      vars=c(), #Add variable list
+                      strata=c(""), #Add stratification variable
+                      type="", #Add type of variable for which descriptive is to be generated i.e. "categorical", "binary" or "continuous"
+                      vars_label = sheet2_labels
+					  )
+
+
+setwd("D:/Program Files/projects/Delivery/HF AF - Healthcare burden/deliverables/Dec 6 onwards/Descriptives")
+
+#creating the workbook object
+workbook <- wb(
+              #sheet1
+              sheet(tables=c(sheet1_descr),
+                    subtitle="",
+                    sheetname="",type=""),
+              #sheet2
+              sheet(tables=c(sheet2_descr),
+                    subtitle="",
+                    sheetname="",type="")
+)
+
+#exporting the data to excel
+export(workbook,"Workbook_name.xlsx", title = "")
+
+
+
