@@ -9,7 +9,7 @@ Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://j
 Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
 
 ```markdown
-Syntax highlighted code block
+Following sample codes are added on this page to showcase programming capabilities to be eligible for HIDS program at GU
 
 # Header 1
 ## Header 2
@@ -18,8 +18,9 @@ Syntax highlighted code block
 - Bulleted
 - List
 
-1. Numbered
-2. List
+1. **SQL sample** - A code for extracting patients with wAMD and DME diagnosis and subsequently adding features which are required to perform survival analysis on extracted patients
+2. **R sample** - A code of a user defined function in R, which can be used to generate quick descriptive reports
+3. **Python sample** - 
 
 **Bold** and _Italic_ and `Code` text
 
