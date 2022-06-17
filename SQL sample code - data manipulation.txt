@@ -1,0 +1,2839 @@
+-- Study - wAMD/DME cohort
+-- start - 09/03/2021
+
+select diag_cd from amd_diag_codes_v3;
+select diag_cd from dme_diag_codes_v2;
+select * from srivaabg_v3_drug_codes where drug_name in ("Avastin","Eylea","Lucentis") ;
+select * from srivaabg_v3_proc_codes where drug_name in ("Avastin","Eylea","Lucentis") ;
+--Identify wAMD/DME diagnosis
+
+
+drop table if exists srivaabg_v4_all_pats;
+
+create table srivaabg_v4_all_pats as 
+select b.enrolid, b.svcdate, b.sex, b.region, b.age, b.pdx, b.dx1, b.dx2, b.dx3, b.dx4, b.dx5,  b.tab
+from 
+(
+    select distinct c.enrolid, c.svcdate, c.sex, c.region, (c.svcyear - c.dobyr) as age,
+    c.pdx, c.dx1, c.dx2, c.dx3, c.dx4, c.dx5, c.tab
+    from 
+    (
+        select enrolid, svcdate, sex, region, dobyr, date_part('year', svcdate) as svcyear,
+        pdx, dx1, dx2, dx3, dx4, dx5, 'I' as tab
+        from src_marketscan.ccae_mdcr_s
+        where (pdx in ('H3532','H35321','H353210','H353211','H353212','H353213','H35322','H353220'
+						,'H353221','H353222','H353223','H35323','H353230','H353231','H353232'
+						,'H353233','H35329','H353290','H353291','H353292','H353293','36252')
+ 
+				or pdx in ('36207','E08311','E08321','E083211','E083212','E083213','E083219','E08331','E083311','E083312','E083313','E083319'
+						,'E08341','E083411','E083412','E083413','E083419','E08351','E083511','E083512','E083513','E083519','E0837','E0837X1','E0837X2','E0837X3','E0837X9','E09311','E09321','E093211'
+						,'E093212','E093213','E093219','E09331','E093311','E093312','E093313','E093319','E09341','E093411','E093412','E093413','E093419','E09351','E093511','E093512','E093513','E093519'
+						,'E0937','E0937X1','E0937X2','E0937X3','E0937X9','E10311','E10321','E103211','E103212','E103213','E103219','E10331','E103311','E103312','E103313','E103319','E10341','E103411'
+						,'E103412','E103413','E103419','E10351','E103511','E103512','E103513','E103519','E1037','E1037X1','E1037X2','E1037X3','E1037X9','E11311','E11321','E113211','E113212','E113213'
+						,'E113219','E11331','E113311','E113312','E113313','E113319','E11341','E113411','E113412','E113413','E113419','E11351','E113511','E113512','E113513','E113519','E1137','E1137X1'
+						,'E1137X2','E1137X3','E1137X9','E13311','E13321','E133211','E133212','E133213','E133219','E13331','E133311','E133312','E133313','E133319','E13341','E133411','E133412','E133413','E133419'
+						,'E13351','E133511','E133512','E133513','E133519','E1337','E1337X1','E1337X2','E1337X3','E1337X9')
+
+                or dx1 in ('H3532','H35321','H353210','H353211','H353212','H353213','H35322','H353220'
+						,'H353221','H353222','H353223','H35323','H353230','H353231','H353232'
+						,'H353233','H35329','H353290','H353291','H353292','H353293','36252')
+				or dx1 in ('36207','E08311','E08321','E083211','E083212','E083213','E083219','E08331','E083311','E083312','E083313','E083319'
+						,'E08341','E083411','E083412','E083413','E083419','E08351','E083511','E083512','E083513','E083519','E0837','E0837X1','E0837X2','E0837X3','E0837X9','E09311','E09321','E093211'
+						,'E093212','E093213','E093219','E09331','E093311','E093312','E093313','E093319','E09341','E093411','E093412','E093413','E093419','E09351','E093511','E093512','E093513','E093519'
+						,'E0937','E0937X1','E0937X2','E0937X3','E0937X9','E10311','E10321','E103211','E103212','E103213','E103219','E10331','E103311','E103312','E103313','E103319','E10341','E103411'
+						,'E103412','E103413','E103419','E10351','E103511','E103512','E103513','E103519','E1037','E1037X1','E1037X2','E1037X3','E1037X9','E11311','E11321','E113211','E113212','E113213'
+						,'E113219','E11331','E113311','E113312','E113313','E113319','E11341','E113411','E113412','E113413','E113419','E11351','E113511','E113512','E113513','E113519','E1137','E1137X1'
+						,'E1137X2','E1137X3','E1137X9','E13311','E13321','E133211','E133212','E133213','E133219','E13331','E133311','E133312','E133313','E133319','E13341','E133411','E133412','E133413','E133419'
+						,'E13351','E133511','E133512','E133513','E133519','E1337','E1337X1','E1337X2','E1337X3','E1337X9')
+                or dx2 in ('H3532','H35321','H353210','H353211','H353212','H353213','H35322','H353220'
+						,'H353221','H353222','H353223','H35323','H353230','H353231','H353232'
+						,'H353233','H35329','H353290','H353291','H353292','H353293','36252')
+				or dx2 in ('36207','E08311','E08321','E083211','E083212','E083213','E083219','E08331','E083311','E083312','E083313','E083319'
+						,'E08341','E083411','E083412','E083413','E083419','E08351','E083511','E083512','E083513','E083519','E0837','E0837X1','E0837X2','E0837X3','E0837X9','E09311','E09321','E093211'
+						,'E093212','E093213','E093219','E09331','E093311','E093312','E093313','E093319','E09341','E093411','E093412','E093413','E093419','E09351','E093511','E093512','E093513','E093519'
+						,'E0937','E0937X1','E0937X2','E0937X3','E0937X9','E10311','E10321','E103211','E103212','E103213','E103219','E10331','E103311','E103312','E103313','E103319','E10341','E103411'
+						,'E103412','E103413','E103419','E10351','E103511','E103512','E103513','E103519','E1037','E1037X1','E1037X2','E1037X3','E1037X9','E11311','E11321','E113211','E113212','E113213'
+						,'E113219','E11331','E113311','E113312','E113313','E113319','E11341','E113411','E113412','E113413','E113419','E11351','E113511','E113512','E113513','E113519','E1137','E1137X1'
+						,'E1137X2','E1137X3','E1137X9','E13311','E13321','E133211','E133212','E133213','E133219','E13331','E133311','E133312','E133313','E133319','E13341','E133411','E133412','E133413','E133419'
+						,'E13351','E133511','E133512','E133513','E133519','E1337','E1337X1','E1337X2','E1337X3','E1337X9')
+                or dx3 in ('H3532','H35321','H353210','H353211','H353212','H353213','H35322','H353220'
+						,'H353221','H353222','H353223','H35323','H353230','H353231','H353232'
+						,'H353233','H35329','H353290','H353291','H353292','H353293','36252')
+				or dx3 in ('36207','E08311','E08321','E083211','E083212','E083213','E083219','E08331','E083311','E083312','E083313','E083319'
+						,'E08341','E083411','E083412','E083413','E083419','E08351','E083511','E083512','E083513','E083519','E0837','E0837X1','E0837X2','E0837X3','E0837X9','E09311','E09321','E093211'
+						,'E093212','E093213','E093219','E09331','E093311','E093312','E093313','E093319','E09341','E093411','E093412','E093413','E093419','E09351','E093511','E093512','E093513','E093519'
+						,'E0937','E0937X1','E0937X2','E0937X3','E0937X9','E10311','E10321','E103211','E103212','E103213','E103219','E10331','E103311','E103312','E103313','E103319','E10341','E103411'
+						,'E103412','E103413','E103419','E10351','E103511','E103512','E103513','E103519','E1037','E1037X1','E1037X2','E1037X3','E1037X9','E11311','E11321','E113211','E113212','E113213'
+						,'E113219','E11331','E113311','E113312','E113313','E113319','E11341','E113411','E113412','E113413','E113419','E11351','E113511','E113512','E113513','E113519','E1137','E1137X1'
+						,'E1137X2','E1137X3','E1137X9','E13311','E13321','E133211','E133212','E133213','E133219','E13331','E133311','E133312','E133313','E133319','E13341','E133411','E133412','E133413','E133419'
+						,'E13351','E133511','E133512','E133513','E133519','E1337','E1337X1','E1337X2','E1337X3','E1337X9')
+                or dx4 in ('H3532','H35321','H353210','H353211','H353212','H353213','H35322','H353220'
+						,'H353221','H353222','H353223','H35323','H353230','H353231','H353232'
+						,'H353233','H35329','H353290','H353291','H353292','H353293','36252') 
+				or dx4 in ('36207','E08311','E08321','E083211','E083212','E083213','E083219','E08331','E083311','E083312','E083313','E083319'
+						,'E08341','E083411','E083412','E083413','E083419','E08351','E083511','E083512','E083513','E083519','E0837','E0837X1','E0837X2','E0837X3','E0837X9','E09311','E09321','E093211'
+						,'E093212','E093213','E093219','E09331','E093311','E093312','E093313','E093319','E09341','E093411','E093412','E093413','E093419','E09351','E093511','E093512','E093513','E093519'
+						,'E0937','E0937X1','E0937X2','E0937X3','E0937X9','E10311','E10321','E103211','E103212','E103213','E103219','E10331','E103311','E103312','E103313','E103319','E10341','E103411'
+						,'E103412','E103413','E103419','E10351','E103511','E103512','E103513','E103519','E1037','E1037X1','E1037X2','E1037X3','E1037X9','E11311','E11321','E113211','E113212','E113213'
+						,'E113219','E11331','E113311','E113312','E113313','E113319','E11341','E113411','E113412','E113413','E113419','E11351','E113511','E113512','E113513','E113519','E1137','E1137X1'
+						,'E1137X2','E1137X3','E1137X9','E13311','E13321','E133211','E133212','E133213','E133219','E13331','E133311','E133312','E133313','E133319','E13341','E133411','E133412','E133413','E133419'
+						,'E13351','E133511','E133512','E133513','E133519','E1337','E1337X1','E1337X2','E1337X3','E1337X9')
+                or dx5 in ('H3532','H35321','H353210','H353211','H353212','H353213','H35322','H353220'
+						,'H353221','H353222','H353223','H35323','H353230','H353231','H353232'
+						,'H353233','H35329','H353290','H353291','H353292','H353293','36252')
+				or dx5 in ('36207','E08311','E08321','E083211','E083212','E083213','E083219','E08331','E083311','E083312','E083313','E083319'
+						,'E08341','E083411','E083412','E083413','E083419','E08351','E083511','E083512','E083513','E083519','E0837','E0837X1','E0837X2','E0837X3','E0837X9','E09311','E09321','E093211'
+						,'E093212','E093213','E093219','E09331','E093311','E093312','E093313','E093319','E09341','E093411','E093412','E093413','E093419','E09351','E093511','E093512','E093513','E093519'
+						,'E0937','E0937X1','E0937X2','E0937X3','E0937X9','E10311','E10321','E103211','E103212','E103213','E103219','E10331','E103311','E103312','E103313','E103319','E10341','E103411'
+						,'E103412','E103413','E103419','E10351','E103511','E103512','E103513','E103519','E1037','E1037X1','E1037X2','E1037X3','E1037X9','E11311','E11321','E113211','E113212','E113213'
+						,'E113219','E11331','E113311','E113312','E113313','E113319','E11341','E113411','E113412','E113413','E113419','E11351','E113511','E113512','E113513','E113519','E1137','E1137X1'
+						,'E1137X2','E1137X3','E1137X9','E13311','E13321','E133211','E133212','E133213','E133219','E13331','E133311','E133312','E133313','E133319','E13341','E133411','E133412','E133413','E133419'
+						,'E13351','E133511','E133512','E133513','E133519','E1337','E1337X1','E1337X2','E1337X3','E1337X9')   )
+        and svcdate between cast('2011-01-01' as timestamp) and cast('2020-06-30' as timestamp)
+        and enrolid is not null
+
+ 
+
+        union all
+
+ 
+
+        select enrolid, svcdate, sex, region, dobyr, date_part('year', svcdate) as svcyear, 
+        dx1 as pdx, dx1, dx2, dx3, dx4, dx5, 'O' as tab 
+        from src_marketscan.ccae_mdcr_o
+        where (dx1 in ('H3532','H35321','H353210','H353211','H353212','H353213','H35322','H353220'
+						,'H353221','H353222','H353223','H35323','H353230','H353231','H353232'
+						,'H353233','H35329','H353290','H353291','H353292','H353293','36252')
+				or dx1 in ('36207','E08311','E08321','E083211','E083212','E083213','E083219','E08331','E083311','E083312','E083313','E083319'
+						,'E08341','E083411','E083412','E083413','E083419','E08351','E083511','E083512','E083513','E083519','E0837','E0837X1','E0837X2','E0837X3','E0837X9','E09311','E09321','E093211'
+						,'E093212','E093213','E093219','E09331','E093311','E093312','E093313','E093319','E09341','E093411','E093412','E093413','E093419','E09351','E093511','E093512','E093513','E093519'
+						,'E0937','E0937X1','E0937X2','E0937X3','E0937X9','E10311','E10321','E103211','E103212','E103213','E103219','E10331','E103311','E103312','E103313','E103319','E10341','E103411'
+						,'E103412','E103413','E103419','E10351','E103511','E103512','E103513','E103519','E1037','E1037X1','E1037X2','E1037X3','E1037X9','E11311','E11321','E113211','E113212','E113213'
+						,'E113219','E11331','E113311','E113312','E113313','E113319','E11341','E113411','E113412','E113413','E113419','E11351','E113511','E113512','E113513','E113519','E1137','E1137X1'
+						,'E1137X2','E1137X3','E1137X9','E13311','E13321','E133211','E133212','E133213','E133219','E13331','E133311','E133312','E133313','E133319','E13341','E133411','E133412','E133413','E133419'
+						,'E13351','E133511','E133512','E133513','E133519','E1337','E1337X1','E1337X2','E1337X3','E1337X9')
+                or dx2 in ('H3532','H35321','H353210','H353211','H353212','H353213','H35322','H353220'
+						,'H353221','H353222','H353223','H35323','H353230','H353231','H353232'
+						,'H353233','H35329','H353290','H353291','H353292','H353293','36252')
+				or dx2 in ('36207','E08311','E08321','E083211','E083212','E083213','E083219','E08331','E083311','E083312','E083313','E083319'
+						,'E08341','E083411','E083412','E083413','E083419','E08351','E083511','E083512','E083513','E083519','E0837','E0837X1','E0837X2','E0837X3','E0837X9','E09311','E09321','E093211'
+						,'E093212','E093213','E093219','E09331','E093311','E093312','E093313','E093319','E09341','E093411','E093412','E093413','E093419','E09351','E093511','E093512','E093513','E093519'
+						,'E0937','E0937X1','E0937X2','E0937X3','E0937X9','E10311','E10321','E103211','E103212','E103213','E103219','E10331','E103311','E103312','E103313','E103319','E10341','E103411'
+						,'E103412','E103413','E103419','E10351','E103511','E103512','E103513','E103519','E1037','E1037X1','E1037X2','E1037X3','E1037X9','E11311','E11321','E113211','E113212','E113213'
+						,'E113219','E11331','E113311','E113312','E113313','E113319','E11341','E113411','E113412','E113413','E113419','E11351','E113511','E113512','E113513','E113519','E1137','E1137X1'
+						,'E1137X2','E1137X3','E1137X9','E13311','E13321','E133211','E133212','E133213','E133219','E13331','E133311','E133312','E133313','E133319','E13341','E133411','E133412','E133413','E133419'
+						,'E13351','E133511','E133512','E133513','E133519','E1337','E1337X1','E1337X2','E1337X3','E1337X9')
+                or dx3 in ('H3532','H35321','H353210','H353211','H353212','H353213','H35322','H353220'
+						,'H353221','H353222','H353223','H35323','H353230','H353231','H353232'
+						,'H353233','H35329','H353290','H353291','H353292','H353293','36252')
+				or dx3 in ('36207','E08311','E08321','E083211','E083212','E083213','E083219','E08331','E083311','E083312','E083313','E083319'
+						,'E08341','E083411','E083412','E083413','E083419','E08351','E083511','E083512','E083513','E083519','E0837','E0837X1','E0837X2','E0837X3','E0837X9','E09311','E09321','E093211'
+						,'E093212','E093213','E093219','E09331','E093311','E093312','E093313','E093319','E09341','E093411','E093412','E093413','E093419','E09351','E093511','E093512','E093513','E093519'
+						,'E0937','E0937X1','E0937X2','E0937X3','E0937X9','E10311','E10321','E103211','E103212','E103213','E103219','E10331','E103311','E103312','E103313','E103319','E10341','E103411'
+						,'E103412','E103413','E103419','E10351','E103511','E103512','E103513','E103519','E1037','E1037X1','E1037X2','E1037X3','E1037X9','E11311','E11321','E113211','E113212','E113213'
+						,'E113219','E11331','E113311','E113312','E113313','E113319','E11341','E113411','E113412','E113413','E113419','E11351','E113511','E113512','E113513','E113519','E1137','E1137X1'
+						,'E1137X2','E1137X3','E1137X9','E13311','E13321','E133211','E133212','E133213','E133219','E13331','E133311','E133312','E133313','E133319','E13341','E133411','E133412','E133413','E133419'
+						,'E13351','E133511','E133512','E133513','E133519','E1337','E1337X1','E1337X2','E1337X3','E1337X9')
+                or dx4 in ('H3532','H35321','H353210','H353211','H353212','H353213','H35322','H353220'
+						,'H353221','H353222','H353223','H35323','H353230','H353231','H353232'
+						,'H353233','H35329','H353290','H353291','H353292','H353293','36252') 
+				or dx4 in ('36207','E08311','E08321','E083211','E083212','E083213','E083219','E08331','E083311','E083312','E083313','E083319'
+						,'E08341','E083411','E083412','E083413','E083419','E08351','E083511','E083512','E083513','E083519','E0837','E0837X1','E0837X2','E0837X3','E0837X9','E09311','E09321','E093211'
+						,'E093212','E093213','E093219','E09331','E093311','E093312','E093313','E093319','E09341','E093411','E093412','E093413','E093419','E09351','E093511','E093512','E093513','E093519'
+						,'E0937','E0937X1','E0937X2','E0937X3','E0937X9','E10311','E10321','E103211','E103212','E103213','E103219','E10331','E103311','E103312','E103313','E103319','E10341','E103411'
+						,'E103412','E103413','E103419','E10351','E103511','E103512','E103513','E103519','E1037','E1037X1','E1037X2','E1037X3','E1037X9','E11311','E11321','E113211','E113212','E113213'
+						,'E113219','E11331','E113311','E113312','E113313','E113319','E11341','E113411','E113412','E113413','E113419','E11351','E113511','E113512','E113513','E113519','E1137','E1137X1'
+						,'E1137X2','E1137X3','E1137X9','E13311','E13321','E133211','E133212','E133213','E133219','E13331','E133311','E133312','E133313','E133319','E13341','E133411','E133412','E133413','E133419'
+						,'E13351','E133511','E133512','E133513','E133519','E1337','E1337X1','E1337X2','E1337X3','E1337X9')
+                or dx5 in ('H3532','H35321','H353210','H353211','H353212','H353213','H35322','H353220'
+						,'H353221','H353222','H353223','H35323','H353230','H353231','H353232'
+						,'H353233','H35329','H353290','H353291','H353292','H353293','36252')
+				or dx5 in ('36207','E08311','E08321','E083211','E083212','E083213','E083219','E08331','E083311','E083312','E083313','E083319'
+						,'E08341','E083411','E083412','E083413','E083419','E08351','E083511','E083512','E083513','E083519','E0837','E0837X1','E0837X2','E0837X3','E0837X9','E09311','E09321','E093211'
+						,'E093212','E093213','E093219','E09331','E093311','E093312','E093313','E093319','E09341','E093411','E093412','E093413','E093419','E09351','E093511','E093512','E093513','E093519'
+						,'E0937','E0937X1','E0937X2','E0937X3','E0937X9','E10311','E10321','E103211','E103212','E103213','E103219','E10331','E103311','E103312','E103313','E103319','E10341','E103411'
+						,'E103412','E103413','E103419','E10351','E103511','E103512','E103513','E103519','E1037','E1037X1','E1037X2','E1037X3','E1037X9','E11311','E11321','E113211','E113212','E113213'
+						,'E113219','E11331','E113311','E113312','E113313','E113319','E11341','E113411','E113412','E113413','E113419','E11351','E113511','E113512','E113513','E113519','E1137','E1137X1'
+						,'E1137X2','E1137X3','E1137X9','E13311','E13321','E133211','E133212','E133213','E133219','E13331','E133311','E133312','E133313','E133319','E13341','E133411','E133412','E133413','E133419'
+						,'E13351','E133511','E133512','E133513','E133519','E1337','E1337X1','E1337X2','E1337X3','E1337X9')   )
+        and svcdate between cast('2011-01-01' as timestamp) and cast('2020-06-30' as timestamp) 
+        and enrolid is not null
+    ) as c
+) as b
+;
+
+
+
+drop table if exists srivaabg_v4_wamd_dme_pats;
+   
+create table srivaabg_v4_wamd_dme_pats as  
+select b.*
+from
+	(
+	select a.*, case when dx in ('H3532','H35321','H353210','H353211','H353212','H353213','H35322','H353220'
+						,'H353221','H353222','H353223','H35323','H353230','H353231','H353232'
+						,'H353233','H35329','H353290','H353291','H353292','H353293','36252') then 'WAMD'
+					 when dx in ('36207','E08311','E08321','E083211','E083212','E083213','E083219','E08331','E083311','E083312','E083313','E083319'
+						,'E08341','E083411','E083412','E083413','E083419','E08351','E083511','E083512','E083513','E083519','E0837','E0837X1','E0837X2','E0837X3','E0837X9','E09311','E09321','E093211'
+						,'E093212','E093213','E093219','E09331','E093311','E093312','E093313','E093319','E09341','E093411','E093412','E093413','E093419','E09351','E093511','E093512','E093513','E093519'
+						,'E0937','E0937X1','E0937X2','E0937X3','E0937X9','E10311','E10321','E103211','E103212','E103213','E103219','E10331','E103311','E103312','E103313','E103319','E10341','E103411'
+						,'E103412','E103413','E103419','E10351','E103511','E103512','E103513','E103519','E1037','E1037X1','E1037X2','E1037X3','E1037X9','E11311','E11321','E113211','E113212','E113213'
+						,'E113219','E11331','E113311','E113312','E113313','E113319','E11341','E113411','E113412','E113413','E113419','E11351','E113511','E113512','E113513','E113519','E1137','E1137X1'
+						,'E1137X2','E1137X3','E1137X9','E13311','E13321','E133211','E133212','E133213','E133219','E13331','E133311','E133312','E133313','E133319','E13341','E133411','E133412','E133413','E133419'
+						,'E13351','E133511','E133512','E133513','E133519','E1337','E1337X1','E1337X2','E1337X3','E1337X9') then 'DME'
+					 else 'unknown'
+					 end as diag
+	from
+		(
+		select enrolid, svcdate, sex, region, age, tab, pdx as dx
+		from srivaabg_v4_all_pats
+		union all
+		select enrolid, svcdate, sex, region, age, tab, dx1 as dx
+		from srivaabg_v4_all_pats
+		union all
+		select enrolid, svcdate, sex, region, age, tab, dx2 as dx
+		from srivaabg_v4_all_pats
+		union all
+		select enrolid, svcdate, sex, region, age, tab, dx3 as dx
+		from srivaabg_v4_all_pats
+		union all
+		select enrolid, svcdate, sex, region, age, tab, dx4 as dx
+		from srivaabg_v4_all_pats
+		union all
+		select enrolid, svcdate, sex, region, age, tab, dx5 as dx
+		from srivaabg_v4_all_pats
+		) as a
+	where a.enrolid is not null
+	) as b
+where b.diag <> 'unknown'
+;
+
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_pats
+group by diag;
+
+--diag	count(distinct enrolid)
+--DME	213026
+--WAMD	238301
+
+
+
+select * from srivaabg_v3_drug_codes;
+select * from srivaabg_v3_proc_codes;
+
+
+--Finding anti VEGF injections
+
+drop table if exists srivaabg_v4_wamd_dme_pat_antivegf;
+
+create table srivaabg_v4_wamd_dme_pat_antivegf as
+select distinct c.enrolid, c.ndcnum as code, c.svcdate as avegf_date, b.drug_name, (date_part('year',c.svcdate) - c.dobyr) as age_avegf, 'NA' as procmod
+from srivaabg_v3_drug_codes as b
+join src_marketscan.ccae_mdcr_d as c
+on c.ndcnum = b.drug_code
+and b.drug_name in ("Avastin","Eylea","Lucentis")
+and c.enrolid is not null
+and c.svcdate between cast('2011-01-01' as timestamp) and cast('2020-06-30' as timestamp)
+union all
+select distinct c.enrolid, c.pproc as code, c.svcdate as avegf_date, b.drug_name, (date_part('year',c.svcdate) - c.dobyr) as age_avegf, procmod
+from srivaabg_v3_proc_codes as b
+join src_marketscan.ccae_mdcr_s as c
+on c.pproc = b.proc_code
+and b.drug_name in ("Avastin","Eylea","Lucentis")
+and c.enrolid is not null
+and c.svcdate between cast('2011-01-01' as timestamp) and cast('2020-06-30' as timestamp)
+union all
+select distinct c.enrolid, c.proc1 as code, c.svcdate as avegf_date, b.drug_name, (date_part('year',c.svcdate) - c.dobyr) as age_avegf, procmod
+from srivaabg_v3_proc_codes as b
+join src_marketscan.ccae_mdcr_s as c
+on c.proc1 = b.proc_code
+and b.drug_name in ("Avastin","Eylea","Lucentis")
+and c.enrolid is not null
+and c.svcdate between cast('2011-01-01' as timestamp) and cast('2020-06-30' as timestamp)
+union all
+select distinct c.enrolid, c.proc1 as code, c.svcdate as avegf_date, b.drug_name, (date_part('year',c.svcdate) - c.dobyr) as age_avegf, procmod
+from srivaabg_v3_proc_codes as b
+join src_marketscan.ccae_mdcr_o as c
+on c.proc1 = b.proc_code
+and b.drug_name in ("Avastin","Eylea","Lucentis")
+and c.enrolid is not null
+and c.svcdate between cast('2011-01-01' as timestamp) and cast('2020-06-30' as timestamp)
+
+;
+
+--Selecting index antivegf treatment day
+
+
+drop table if exists srivaabg_v4_wamd_dme_pat_index_avegf;
+
+create table srivaabg_v4_wamd_dme_pat_index_avegf as
+select distinct c.*
+from
+    (
+    select enrolid, avegf_date, age_avegf
+            , row_number() over(partition by enrolid order by avegf_date asc, age_avegf desc) as rank
+    from srivaabg_v4_wamd_dme_pat_antivegf 
+    ) as c
+where rank = 1
+;
+
+select count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_index_avegf ;
+
+
+--Checking continuous enrolment
+
+drop table if exists srivaabg_v4_cont_enrol_avegf_pats;
+
+create table srivaabg_v4_cont_enrol_avegf_pats as
+select *
+from 
+    (
+    select  d.enrolid,
+    		MIN(d.dtstart) as DT_START,
+    		MAX(d.dtend) as DT_END,
+    		d.EPISODE
+    from
+    	(
+    		select  c.enrolid, c.dtstart, c.dtend, c.start_of_EPISODE, 
+    		sum(c.start_of_EPISODE) over(partition by c.enrolid order by c.dtstart rows between unbounded preceding and current row) as EPISODE 
+    		--Cumulative sum
+    		from
+    			(
+    				select p.*, 
+    				case when ((add_dt between dtstart and dtend) and (add_dt >= lag_dt))
+    				then 0
+    				else 1
+    				end start_of_EPISODE
+    				from  
+    				( 
+    					select enrolid, dtstart, dtend, lag(dtend,1) over(partition by enrolid order by dtstart) as lag_dt, 
+    					lag(date_add(dtend, 1)) over(partition by enrolid order by dtstart) as add_dt
+    					from src_marketscan.ccae_mdcr_t
+    					where enrolid in 
+    					(
+    						select distinct enrolid from srivaabg_v4_wamd_dme_pat_index_avegf
+    					)
+    				) as p
+    			) as c
+    	order by enrolid, dtstart
+    	) as d   
+    group by d.enrolid, d.EPISODE
+    order by d.enrolid, d.EPISODE
+    ) as e
+;
+
+
+--Checking medical and drug coverage 
+--Identifies whether or not Watson Health captures drug claims for an enrolled individual's plan group
+
+drop table if exists srivaabg_v4_cont_enrol_rx_avegf_pats;
+
+create table srivaabg_v4_cont_enrol_rx_avegf_pats as
+select *
+from 
+    (
+    select  d.enrolid,
+    		MIN(d.dtstart) as DT_START,
+    		MAX(d.dtend) as DT_END,
+    		d.EPISODE
+    from
+    	(
+    		select  c.enrolid, c.dtstart, c.dtend, c.start_of_EPISODE, 
+    		sum(c.start_of_EPISODE) over(partition by c.enrolid order by c.dtstart rows between unbounded preceding and current row) as EPISODE 
+    		--Cumulative sum
+    		from
+    			(
+    				select p.*, 
+    				case when ((add_dt between dtstart and dtend) and (add_dt >= lag_dt))
+    				then 0
+    				else 1
+    				end start_of_EPISODE
+    				from  
+    				( 
+    					select enrolid, dtstart, dtend, lag(dtend,1) over(partition by enrolid order by dtstart) as lag_dt, 
+    					lag(date_add(dtend, 1)) over(partition by enrolid order by dtstart) as add_dt
+    					from src_marketscan.ccae_mdcr_t
+    					where enrolid in 
+    					(
+    						select distinct enrolid from srivaabg_v4_wamd_dme_pat_index_avegf
+    					)
+    					and rx = '1'
+    				) as p
+    			) as c
+    	order by enrolid, dtstart
+    	) as d   
+    group by d.enrolid, d.EPISODE
+    order by d.enrolid, d.EPISODE
+    ) as e
+;
+
+
+
+
+--Classifying flagging patients with atleast 24 months of continuous anti-VEGF treatment 
+
+drop table if exists srivaabg_v4_wamd_dme_trtgap_flags ;
+
+create table srivaabg_v4_wamd_dme_trtgap_flags as
+
+select d.*, rank() over(partition by enrolid, rec_within_24mon order by all_trt_dates) as rank
+          , rank() over(partition by enrolid, rec_within_24mon order by all_trt_dates desc) as rank_desc  
+          , datediff(all_trt_dates,prev_trt_dates) as cons_datediff
+from 
+    (
+    select c.*, case when c.all_trt_dates <= c.`24_mon_trt_date` then 1 else 2 end as rec_within_24mon
+              , case when lag(c.all_trt_dates,1) over(partition by c.enrolid order by c.all_trt_dates) 
+                    < date_add(c.all_trt_dates,-365) 
+                    then 1 else 0 
+                    end as grtr_52w_gap
+			  , case when lag(c.all_trt_dates,1) over(partition by c.enrolid order by c.all_trt_dates) 
+                    < date_add(c.all_trt_dates,-182) 
+                    then 1 else 0 
+                    end as grtr_26w_gap 
+              , case when lag(c.all_trt_dates,1) over(partition by c.enrolid order by c.all_trt_dates) 
+                    >= date_add(c.all_trt_dates,-25) 
+                    then 1 else 0 
+                    end as less_25d_gap
+              , case when lag(c.all_trt_dates,1) over(partition by c.enrolid order by c.all_trt_dates) 
+                    >= date_add(c.all_trt_dates,-21) 
+                    then 1 else 0 
+                    end as less_21d_gap  
+              , case when lag(c.all_trt_dates,1) over(partition by c.enrolid order by c.all_trt_dates) 
+                    >= date_add(c.all_trt_dates,-15) 
+                    then 1 else 0 
+                    end as less_15d_gap          
+              , lag(c.all_trt_dates,1) over(partition by c.enrolid order by c.all_trt_dates) as prev_trt_dates
+              
+    from
+        (
+        select distinct a.enrolid, a.avegf_date as index_avegf, b.drug_name, b.procmod, b.avegf_date as all_trt_dates
+                        , date_add(a.avegf_date,730) as 24_mon_trt_date
+        from srivaabg_v4_wamd_dme_pat_index_avegf as a
+        join srivaabg_v4_wamd_dme_pat_antivegf as b
+        on a.enrolid = b.enrolid
+        order by a.enrolid , b.avegf_date
+        ) as c
+    order by c.enrolid , c.all_trt_dates    
+    ) as d
+order by d.enrolid , d.all_trt_dates;
+
+
+-- Adding attrition flags to main anti-vegf table
+
+drop table if exists srivaabg_v4_wamd_dme_pat_att_flags;
+create table srivaabg_v4_wamd_dme_pat_att_flags as 
+
+select f.*, case when months_between(index_avegf,dt_start_sp) >=6 then 1 else 0 end as ce_6m_bl
+          , case when months_between(dt_end_sp,index_avegf) >=24 then 1 else 0 end as ce_24m_fu 
+          , case when months_between(index_avegf,dt_start_rx_sp) >=6 then 1 else 0 end as ce_rx_6m_bl
+          , case when months_between(dt_end_rx_sp,index_avegf) >=24 then 1 else 0 end as ce_rx_24m_fu 
+          
+from 
+    (
+    select a.enrolid, a.avegf_date as index_avegf, a.age_avegf, b.dt_start, b.dt_end
+            , case when b.DT_START < '2011-01-01' then '2011-01-01' else b.DT_START end as dt_start_sp
+            , case when b.DT_END > '2020-06-30' then '2020-06-30' else b.DT_END end as dt_end_sp
+            , case when e.DT_START < '2011-01-01' then '2011-01-01' else e.DT_START end as dt_start_rx_sp
+            , case when e.DT_END > '2020-06-30' then '2020-06-30' else e.DT_END end as dt_end_rx_sp
+            , coalesce(c.diag_6m_pre,0) as diag_6m_pre
+            , c.diag
+            --, coalesce(d.diag_pre,0) as diag_pre
+            , case when a.age_avegf >= 18 then 1 else 0 end as age_ge18
+            
+    from srivaabg_v4_wamd_dme_pat_index_avegf as a
+    left join srivaabg_v4_cont_enrol_avegf_pats as b
+    on a.enrolid = b.enrolid
+    and a.avegf_date between b.dt_start and b.dt_end
+    left join 
+        (
+        select distinct a.enrolid, B.diag, 1 as diag_6m_pre
+        from srivaabg_v4_wamd_dme_pat_index_avegf as a
+        inner join srivaabg_v4_wamd_dme_pats as b
+        on a.enrolid = b.enrolid
+        and datediff(a.avegf_date,b.svcdate) between 0 and 180
+        order by a.enrolid
+        ) as c
+    on a.enrolid = c.enrolid
+    left join srivaabg_v4_cont_enrol_rx_avegf_pats as e
+    on a.enrolid = e.enrolid
+    and a.avegf_date between e.dt_start and e.dt_end
+    -- left join 
+    --     (
+    --     select distinct a.enrolid, b.diag, 1 as diag_pre
+    --     from srivaabg_v4_wamd_dme_pat_index_avegf as a
+    --     inner join srivaabg_v4_wamd_dme_pats as b
+    --     on a.enrolid = b.enrolid
+    --     and datediff(a.avegf_date,b.svcdate) >= 0
+    --     order by a.enrolid
+    --     ) as d
+    -- on a.enrolid = d.enrolid
+    ) as f;
+    
+select count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+where ce_6m_bl = 1
+;
+
+-- count(*)	    count(distinct enrolid)
+-- 189937	    188769
+
+select count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+where ce_rx_6m_bl = 1
+;
+
+--159949	158972
+    
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+where diag_6m_pre = 1
+group by diag
+;
+
+--diag	count(*)	count(distinct enrolid)
+--DME	61146	    61146
+--WAMD	109199	    109199
+
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+where ce_6m_bl = 1 and diag_6m_pre = 1
+group by diag
+;
+--diag	    count(*)	count(distinct enrolid)
+--DME	    43277	    43277
+--WAMD	    63166	    63166
+
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+where ce_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1
+group by diag
+;
+
+--diag	count(*)	count(distinct enrolid)
+--DME	43272	    43272
+--WAMD	63151	    63151
+
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+where ce_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_24m_fu = 1
+group by diag
+;
+
+--diag	count(*)	count(distinct enrolid)
+--DME	14658	    14658
+--WAMD	26575	    26575
+
+
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+--where diag_6m_pre = 1
+group by diag
+;
+
+--diag	count(*)	count(distinct enrolid)
+--DME	61146	    61146
+--WAMD	109199	    109199
+--NULL	125862	    125862
+
+
+select * from srivaabg_v4_wamd_dme_trtgap_flags;
+
+drop table if exists srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags ;
+
+create table srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags as
+
+select distinct a.*, coalesce(b.2yr_trt,0) as 2yr_trt
+				  , coalesce(c.2yr_trt_grtr_52w_gap,0) as 2yr_trt_grtr_52w_gap
+				  , c.2yr_trt_grtr_52w_gap_date as 2yr_trt_grtr_52w_gap_date
+				  , coalesce(d.2yr_trt_grtr_26w_gap,0) as 2yr_trt_grtr_26w_gap
+				  , d.2yr_trt_grtr_26w_gap_date as 2yr_trt_grtr_26w_gap_date
+				  , coalesce(e.2yr_trt_less_25d_gap,0) as 2yr_trt_less_25d_gap
+				  , e.2yr_trt_less_25d_gap_date as 2yr_trt_less_25d_gap_date
+				  , e.cons_datediff as bilateral_gap
+from srivaabg_v4_wamd_dme_pat_att_flags as a
+left join
+    (
+    select distinct enrolid, 1 as 2yr_trt
+    from srivaabg_v4_wamd_dme_trtgap_flags 
+    where rec_within_24mon = 2
+    ) as b
+on a.enrolid = b.enrolid
+
+left join 
+    (
+    select b.enrolid, b.2yr_trt_grtr_52w_gap, min(b.prev_trt_date) as 2yr_trt_grtr_52w_gap_date
+    from
+        (
+        select a.enrolid, a.prev_trt_date, a.all_trt_dates, 1 as 2yr_trt_grtr_52w_gap
+        from (
+             select * , lag(all_trt_dates,1) over(partition by enrolid order by all_trt_dates) as prev_trt_date
+             from         
+              (select distinct *  from srivaabg_v4_wamd_dme_trtgap_flags) as t 
+             ) as a
+        where ((rec_within_24mon = 1 or (rec_within_24mon = 2 and rank = 1)) and grtr_52w_gap = 1)
+        order by enrolid, all_trt_dates
+        ) as b
+    group by b.enrolid, b.2yr_trt_grtr_52w_gap    
+    ) as c
+on a.enrolid = c.enrolid
+
+left join 
+    (
+    select b.enrolid, b.2yr_trt_grtr_26w_gap, min(b.prev_trt_date) as 2yr_trt_grtr_26w_gap_date
+    from
+        (
+        select a.enrolid, a.prev_trt_date, a.all_trt_dates, 1 as 2yr_trt_grtr_26w_gap
+        from (
+             select * , lag(all_trt_dates,1) over(partition by enrolid order by all_trt_dates) as prev_trt_date
+             from         
+              (select distinct *  from srivaabg_v4_wamd_dme_trtgap_flags) as t 
+             ) as a
+        where ((rec_within_24mon = 1 or (rec_within_24mon = 2 and rank = 1)) and grtr_26w_gap = 1)
+        order by enrolid, all_trt_dates
+        ) as b
+    group by b.enrolid, b.2yr_trt_grtr_26w_gap    
+    ) as d
+on a.enrolid = d.enrolid
+
+left join 
+    (
+    select enrolid, 2yr_trt_less_25d_gap, 2yr_trt_less_25d_gap_date, min(cons_datediff) as cons_datediff
+    from
+        (
+        select b.enrolid, b.2yr_trt_less_25d_gap, cons_datediff, b.prev_trt_date as 2yr_trt_less_25d_gap_date
+                    , rank() over (partition by enrolid order by prev_trt_date)as ranking
+                                                
+        from
+            (
+            select a.enrolid, a.prev_trt_date, cons_datediff, a.all_trt_dates, 1 as 2yr_trt_less_25d_gap
+            from (
+                 select * , lag(all_trt_dates,1) over(partition by enrolid order by all_trt_dates) as prev_trt_date
+                 from         
+                  (select distinct *  from srivaabg_v4_wamd_dme_trtgap_flags
+                  ) as t 
+                 ) as a
+            where ((rec_within_24mon = 1 or (rec_within_24mon = 2 and rank = 1)) and less_25d_gap = 1)
+            order by enrolid, all_trt_dates
+            ) as b
+        --group by b.enrolid, b.2yr_trt_less_25d_gap   
+        ) as g
+    where ranking = 1 
+    group by enrolid, 2yr_trt_less_25d_gap, 2yr_trt_less_25d_gap_date
+    )as e
+on a.enrolid = e.enrolid
+
+-- left join 
+-- (
+-- select *  from srivaabg_v4_wamd_dme_trtgap_flags as a
+-- where ((rec_within_24mon = 1 or (rec_within_24mon = 2 and rank = 1)) and less_25d_gap = 1)
+-- ) as f
+
+order by a.enrolid;
+
+
+
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags
+where ce_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_24m_fu = 1 and 2yr_trt = 1
+group by diag
+;
+
+--diag	count(*)	count(distinct enrolid)
+--DME	6762	    6762
+--WAMD	15332	    15332
+
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags
+where ce_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_24m_fu = 1 and 2yr_trt = 1 and 2yr_trt_grtr_52w_gap = 0
+group by diag
+;
+
+--diag	count(*)	count(distinct enrolid)
+--DME	3751	    3751
+--WAMD	11728	    11728
+
+
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags
+where ce_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_24m_fu = 1 and 2yr_trt = 1 and 2yr_trt_grtr_52w_gap = 0
+        and 2yr_trt_less_25d_gap = 0
+group by diag
+;
+
+--diag	count(*)	count(distinct enrolid)
+--DME	1693	    1693
+--WAMD	8507	    8507
+
+
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags
+where ce_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_24m_fu = 1 and 2yr_trt = 1 and 2yr_trt_grtr_26w_gap = 0
+group by diag
+;
+
+--diag	count(*)	count(distinct enrolid)
+--DME	2173	    2173
+--WAMD	8948	    8948
+
+
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags
+where ce_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_24m_fu = 1 and 2yr_trt = 1 and 2yr_trt_grtr_26w_gap = 0
+        and 2yr_trt_less_25d_gap = 0
+group by diag
+;
+
+--diag	count(*)	count(distinct enrolid)
+--DME	928 	    928
+--WAMD	6348	    6348
+
+--diag	count(*)	count(distinct enrolid)
+--DME	917	        917
+--WAMD	6244    	6244
+
+
+
+--Attrition for step 1 and step 2
+
+select '1' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_index_avegf
+union 
+select '2' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+where ce_6m_bl = 1;
+
+--Attrition for step 1 and step 7 for 52 weeks
+select *
+from
+    (
+    select 'All' as diag, '1' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_index_avegf
+    union 
+    select 'All' as diag, '2' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+    where ce_6m_bl = 1
+    union
+    select diag, '3' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+    where ce_6m_bl = 1 and diag_6m_pre = 1
+    group by diag
+    union 
+    select diag, '4' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+    where ce_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 
+    group by diag
+    union 
+    select diag, '5' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+    where ce_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_24m_fu = 1
+    group by diag
+    union
+    select diag, '6' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags
+    where ce_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_24m_fu = 1 and 2yr_trt = 1 and 2yr_trt_grtr_52w_gap = 0 
+    group by diag
+    union 
+    select diag, '7' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags
+    where ce_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_24m_fu = 1 and 2yr_trt = 1 and 2yr_trt_grtr_52w_gap = 0 and 2yr_trt_less_25d_gap = 0
+    group by diag
+    ) as a
+order by diag, step;
+
+
+--diag	step	count(distinct enrolid)
+--All	1	    294759
+--All	2	    188769
+--DME	3	    43277
+--DME	4	    43272
+--DME	5	    14658
+--DME	6	    3751
+--DME	7	    1675
+--WAMD	3	    63166
+--WAMD	4	    63151
+--WAMD	5	    26575
+--WAMD	6	    11728
+--WAMD	7	    8374
+
+
+--Attrition for step 1 and step 7 for 26 weeks
+select *
+from
+    (
+    select 'All' as diag, '1' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_index_avegf
+    union 
+    select 'All' as diag, '2' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+    where ce_6m_bl = 1
+    union
+    select diag, '3' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+    where ce_6m_bl = 1 and diag_6m_pre = 1
+    group by diag
+    union 
+    select diag, '4' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+    where ce_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 
+    group by diag
+    union 
+    select diag, '5' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+    where ce_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_24m_fu = 1
+    group by diag
+    union
+    select diag, '6' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags
+    where ce_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_24m_fu = 1 and 2yr_trt = 1 and 2yr_trt_grtr_26w_gap = 0 
+    group by diag
+    union 
+    select diag, '7' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags
+    where ce_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_24m_fu = 1 and 2yr_trt = 1 and 2yr_trt_grtr_26w_gap = 0 and 2yr_trt_less_25d_gap = 0
+    group by diag
+    ) as a
+order by diag, step;
+
+--diag	step	count(distinct enrolid)
+--All	1	    294759
+--All	2	    188769
+--DME	3	    43277
+--DME	4	    43272
+--DME	5	    14658
+--DME	6	    2173
+--DME	7	    917
+--WAMD	3	    63166
+--WAMD	4	    63151
+--WAMD	5	    26575
+--WAMD	6	    8948
+--WAMD	7	    6244
+    
+    
+--Attrition for step 1 and step 7 for 52 weeks - with drug coverage
+select *
+from
+    (
+    select 'All' as diag, '1' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_index_avegf
+    union 
+    select 'All' as diag, '2' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+    where ce_rx_6m_bl = 1
+    union
+    select diag, '3' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+    where ce_rx_6m_bl = 1 and diag_6m_pre = 1
+    group by diag
+    union 
+    select diag, '4' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+    where ce_rx_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 
+    group by diag
+    union 
+    select diag, '5' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+    where ce_rx_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_rx_24m_fu = 1
+    group by diag
+    union
+    select diag, '6' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags
+    where ce_rx_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_rx_24m_fu = 1 and 2yr_trt = 1 and 2yr_trt_grtr_52w_gap = 0 
+    group by diag
+    union 
+    select diag, '7' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags
+    where ce_rx_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_rx_24m_fu = 1 and 2yr_trt = 1 and 2yr_trt_grtr_52w_gap = 0 and 2yr_trt_less_25d_gap = 0
+    group by diag
+    ) as a
+order by diag, step;
+    
+--diag	step	count(distinct enrolid)
+--All	1	    294759
+--All	2	    158972
+--DME	3	    37532
+--DME	4	    37527
+--DME	5	    13155
+--DME	6	    3429
+--DME	7	    1536
+--WAMD	3	    51874
+--WAMD	4	    51863
+--WAMD	5	    23630
+--WAMD	6	    10553
+--WAMD	7	    7594
+    
+--Attrition for step 1 and step 7 for 26 weeks - with drug coverage
+select *
+from
+    (
+    select 'All' as diag, '1' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_index_avegf
+    union 
+    select 'All' as diag, '2' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+    where ce_rx_6m_bl = 1
+    union
+    select diag, '3' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+    where ce_rx_6m_bl = 1 and diag_6m_pre = 1
+    group by diag
+    union 
+    select diag, '4' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+    where ce_rx_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 
+    group by diag
+    union 
+    select diag, '5' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_pat_att_flags
+    where ce_rx_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_rx_24m_fu = 1
+    group by diag
+    union
+    select diag, '6' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags
+    where ce_rx_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_rx_24m_fu = 1 and 2yr_trt = 1 and 2yr_trt_grtr_26w_gap = 0 
+    group by diag
+    union 
+    select diag, '7' as step, count(distinct enrolid) from srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags
+    where ce_rx_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_rx_24m_fu = 1 and 2yr_trt = 1 and 2yr_trt_grtr_26w_gap = 0 and 2yr_trt_less_25d_gap = 0
+    group by diag
+    ) as a
+order by diag, step;
+
+--diag	step	count(distinct enrolid)
+--All	1	    294759
+--All	2	    158972
+--DME	3	    37532
+--DME	4	    37527
+--DME	5	    13155
+--DME	6	    1992
+--DME	7	    843
+--WAMD	3	    51874
+--WAMD	4	    51863
+--WAMD	5	    23630
+--WAMD	6	    8093
+--WAMD	7	    5707
+    
+ 
+--QC steps
+
+--Checking max and min dates 
+select max(index_avegf), min(index_avegf) 
+from srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags
+where ce_rx_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_rx_24m_fu = 1 and 2yr_trt = 1 and 2yr_trt_grtr_52w_gap = 0 and 2yr_trt_less_25d_gap = 0
+;
+--max(index_avegf)	    min(index_avegf)
+--2018-06-22 00:00:00	2011-07-01 00:00:00
+
+
+select * from srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags
+where ce_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_24m_fu = 1 and 2yr_trt = 1 and 2yr_trt_grtr_52w_gap = 0
+; -- To check if bilateral patients are getting flagged correctly
+--(32697687801, 1659211101, 768630201) - flagged as bilateral, now we'll check for these patients
+
+select * from srivaabg_v4_wamd_dme_trtgap_flags
+where enrolid in (32697687801, 1659211101, 768630201) 
+order by enrolid, all_trt_dates; --Confirmed all are bilateral patients, hence getting flagged correctly
+
+
+--Creating cohort file with 52/26 week gaps and bilateral flag
+
+drop table if exists srivaabg_v4_cohort_disc_bil_flag;
+create table srivaabg_v4_cohort_disc_bil_flag as
+select distinct * from srivaabg_v4_wamd_dme_2yrtrt_n_gap_flags
+where ce_rx_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 and ce_rx_24m_fu = 1 and 2yr_trt = 1;
+
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_cohort_disc_bil_flag
+group by diag
+
+select bilateral_gap from srivaabg_v4_cohort_disc_bil_flag;
+
+-- ADS creation 
+
+select * from srivaabg_v4_wamd_dme_trtgap_flags;
+
+-- Creating injection frequency groups
+
+
+drop table if exists srivaabg_v4_wamd_dme_inj_fre_grps ;
+
+create table srivaabg_v4_wamd_dme_inj_fre_grps as
+select a.*, b.distinct_inj, c.avg_trt_gap
+            , case when b.distinct_inj between 1 and 3 then 'a. 1-3'
+                 when b.distinct_inj between 4 and 8 then 'b. 4-8'
+                 when b.distinct_inj between 9 and 13 then 'c. 9-13'
+                 when b.distinct_inj between 14 and 18 then 'd. 14-18'
+                 when b.distinct_inj between 19 and 23 then 'e. 19-23'
+                 when b.distinct_inj >= 24 then 'f. >=24'
+                 else null
+                 end as inj_freq_grp 
+            , case when avg_trt_gap between 0 and 34 then 'a. 4 weeks'
+                 when avg_trt_gap between 35 and 48 then 'b. 6 weeks'
+                 when avg_trt_gap between 49 and 62 then 'c. 8 weeks'
+                 when avg_trt_gap between 63 and 76 then 'd. 10 weeks'
+                 when avg_trt_gap between 77 and 90 then 'e. 12 weeks'
+                 when avg_trt_gap > 90 then 'f. >12 weeks'
+                 else null
+                 end as inj_freq_grp_wks 
+            , a.dt_end_rx_sp as censoring_date
+from srivaabg_v4_cohort_disc_bil_flag as a
+left join
+    (
+    select enrolid, count(all_trt_dates) as distinct_inj
+    from srivaabg_v4_wamd_dme_trtgap_flags as a
+    where enrolid in (select distinct enrolid from srivaabg_v4_cohort_disc_bil_flag
+                                    ) 
+    and rec_within_24mon = 1
+    group by enrolid
+    ) as b
+on a.enrolid = b.enrolid
+left join 
+    (
+    select b.enrolid, cast(round(avg(datediff),0) as int) as avg_trt_gap
+    from
+        (
+        select a.*, datediff(a.all_trt_dates, a.prev_trt_date) as datediff
+        from
+            (
+            select * 
+            from
+                (
+                select *, lag(all_trt_dates,1) over(partition by enrolid order by all_trt_dates) as prev_trt_date
+                        , dense_rank() over(partition by enrolid, rec_within_24mon order by all_trt_dates desc) as rank_desc_new
+                from srivaabg_v4_wamd_dme_trtgap_flags as a
+                where enrolid in (select enrolid from srivaabg_v4_cohort_disc_bil_flag
+                                    )
+                ) as b                 
+            
+            where rec_within_24mon = 1 and (rank_desc_new <= 4)
+            order by enrolid, all_trt_dates
+            ) as a
+        ) as b  
+    where b.datediff is not null    
+    group by enrolid
+    ) as c
+on a.enrolid = c.enrolid
+;
+
+select bilateral_gap from srivaabg_v4_wamd_dme_inj_fre_grps ;
+
+select diag, inj_freq_grp, count(distinct enrolid) from srivaabg_v4_wamd_dme_inj_fre_grps
+where 2yr_trt_grtr_52w_gap = 0
+group by diag, inj_freq_grp
+order by diag, inj_freq_grp;
+
+--diag	inj_freq_grp	count(distinct enrolid)
+--DME	1-3	            10
+--DME	14-18	        952
+--DME	19-23	        468
+--DME	4-8	            478
+--DME	9-13	        1046
+--DME	>=24	        475
+--WAMD	1-3	            8
+--WAMD	14-18	        3545
+--WAMD	19-23	        1588
+--WAMD	4-8 	        929
+--WAMD	9-13	        3635
+--WAMD	>=24	        848
+
+
+select diag, inj_freq_grp, count(distinct enrolid) from srivaabg_v4_wamd_dme_inj_fre_grps
+where 2yr_trt_grtr_26w_gap = 0
+group by diag, inj_freq_grp
+order by diag, inj_freq_grp;
+
+--diag	inj_freq_grp	count(distinct enrolid)
+--DME	14-18	        696
+--DME	19-23	        399
+--DME	4-8 	        39
+--DME	9-13	        430
+--DME	>=24	        428
+--WAMD	14-18	        3177
+--WAMD	19-23	        1531
+--WAMD	4-8	            180
+--WAMD	9-13	        2380
+--WAMD	>=24	        825
+
+
+--Adding event variable dates
+
+
+drop table if exists srivaabg_v4_wamd_dme_event_date ;
+ 
+create table srivaabg_v4_wamd_dme_event_date as
+
+select distinct a.*, c.post_2yr_trt_grtr_52w_gap, c.pst_2yr_trt_grtr_52w_gap_dt , d.post_2yr_trt_end_52w_dt
+                   , case when 2yr_trt_grtr_52w_gap = 0 
+                            and c.pst_2yr_trt_grtr_52w_gap_dt is not null
+                            and d.post_2yr_trt_end_52w_dt is not null
+                         then least(c.pst_2yr_trt_grtr_52w_gap_dt, d.post_2yr_trt_end_52w_dt) 
+                         when 2yr_trt_grtr_52w_gap = 0 
+                            and (c.pst_2yr_trt_grtr_52w_gap_dt is null and d.post_2yr_trt_end_52w_dt is not null)
+                         then d.post_2yr_trt_end_52w_dt
+                         when  2yr_trt_grtr_52w_gap = 0 
+                            and (c.pst_2yr_trt_grtr_52w_gap_dt is not null and d.post_2yr_trt_end_52w_dt is null)
+                         then c.pst_2yr_trt_grtr_52w_gap_dt
+                         else null
+                         end as event_date_52w
+                   , e.post_2yr_trt_grtr_26w_gap, e.pst_2yr_trt_grtr_26w_gap_dt , f.post_2yr_trt_end_26w_dt
+                   , case when 2yr_trt_grtr_26w_gap = 0 
+                            and e.pst_2yr_trt_grtr_26w_gap_dt is not null
+                            and f.post_2yr_trt_end_26w_dt is not null
+                         then least(e.pst_2yr_trt_grtr_26w_gap_dt, f.post_2yr_trt_end_26w_dt) 
+                         when 2yr_trt_grtr_26w_gap = 0 
+                            and (e.pst_2yr_trt_grtr_26w_gap_dt is null and f.post_2yr_trt_end_26w_dt is not null)
+                         then f.post_2yr_trt_end_26w_dt
+                         when  2yr_trt_grtr_26w_gap = 0 
+                            and (e.pst_2yr_trt_grtr_26w_gap_dt is not null and f.post_2yr_trt_end_26w_dt is null)
+                         then e.pst_2yr_trt_grtr_26w_gap_dt
+                         else null
+                         end as event_date_26w    
+from srivaabg_v4_wamd_dme_inj_fre_grps as a
+left join 
+    (
+    select b.enrolid, b.post_2yr_trt_grtr_52w_gap, min(b.prev_trt_date) as pst_2yr_trt_grtr_52w_gap_dt
+    from
+        (
+        select a.enrolid, a.prev_trt_date, a.all_trt_dates, 1 as post_2yr_trt_grtr_52w_gap
+        from (
+            select *, case when datediff(all_trt_dates, prev_trt_date) > 365 then 1 else 0 end as grtr_52w_gap
+            from
+                (
+                 select * , lag(all_trt_dates,1) over(partition by enrolid order by all_trt_dates) as prev_trt_date
+                        
+                 from (
+                        select distinct enrolid, all_trt_dates, index_avegf, rec_within_24mon 
+                        from srivaabg_v4_wamd_dme_trtgap_flags
+                        ) as d
+    			 where d.enrolid in (select enrolid from srivaabg_v4_cohort_disc_bil_flag
+                                        )						
+                 ) as c
+             ) as a
+        where rec_within_24mon = 2 and grtr_52w_gap = 1
+        ) as b
+    group by b.enrolid, b.post_2yr_trt_grtr_52w_gap
+    order by b.enrolid
+    ) as c
+on a.enrolid = c.enrolid
+left join
+    (
+    select b.enrolid, date_add(max(b.post_2yr_trt_end_52w_dt),365) as post_2yr_trt_end_52w_dt
+    from
+        (
+        select a.enrolid, a.all_trt_dates as post_2yr_trt_end_52w_dt
+        from srivaabg_v4_wamd_dme_trtgap_flags as a
+		where enrolid in (select enrolid from srivaabg_v4_cohort_disc_bil_flag
+                                    )
+        and rec_within_24mon = 2
+        ) as b
+    group by b.enrolid
+    order by b.enrolid
+    ) as d
+on a.enrolid = d.enrolid
+left join 
+    (
+    select b.enrolid, b.post_2yr_trt_grtr_26w_gap, min(b.prev_trt_date) as pst_2yr_trt_grtr_26w_gap_dt
+    from
+        (
+        select a.enrolid, a.prev_trt_date, a.all_trt_dates, 1 as post_2yr_trt_grtr_26w_gap
+        from (
+            select *, case when datediff(all_trt_dates, prev_trt_date) > 182 then 1 else 0 end as grtr_26w_gap
+            from
+                (
+                 select * , lag(all_trt_dates,1) over(partition by enrolid order by all_trt_dates) as prev_trt_date
+                        
+                 from (
+                        select distinct enrolid, all_trt_dates, index_avegf, rec_within_24mon 
+                        from srivaabg_v4_wamd_dme_trtgap_flags
+                        ) as d
+    			 where d.enrolid in (select enrolid from srivaabg_v4_cohort_disc_bil_flag
+                                        )						
+                 ) as c
+             ) as a
+        where rec_within_24mon = 2 and grtr_26w_gap = 1
+        ) as b
+    group by b.enrolid, b.post_2yr_trt_grtr_26w_gap
+    order by b.enrolid
+    ) as e
+on a.enrolid = e.enrolid
+left join
+    (
+    select b.enrolid, date_add(max(b.post_2yr_trt_end_26w_dt),182) as post_2yr_trt_end_26w_dt
+    from
+        (
+        select a.enrolid, a.all_trt_dates as post_2yr_trt_end_26w_dt
+        from srivaabg_v4_wamd_dme_trtgap_flags as a
+		where enrolid in (select enrolid from srivaabg_v4_cohort_disc_bil_flag
+                                    )
+        and rec_within_24mon = 2
+        ) as b
+    group by b.enrolid
+    order by b.enrolid
+    ) as f
+on a.enrolid = f.enrolid
+;
+
+
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_event_date
+where 2yr_trt_grtr_52w_gap = 0 and 2yr_trt_less_25d_gap = 0
+group by diag;
+
+--diag	count(*)	count(distinct enrolid)
+--WAMD	7594	    7594
+--DME	1536	    1536
+
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_event_date
+where 2yr_trt_grtr_52w_gap = 0 
+group by diag;
+
+--diag	count(*)	count(distinct enrolid)
+--DME	3429	    3429
+--WAMD	10553	    10553
+
+select * from srivaabg_v4_wamd_dme_event_date
+where 2yr_trt_grtr_52w_gap = 0 
+order by diag, enrolid;
+
+select * from srivaabg_v4_wamd_dme_event_date
+where 2yr_trt_grtr_26w_gap = 0 
+order by diag, enrolid;
+
+
+--Creating KM curves variables
+
+drop table if exists srivaabg_v4_wamd_dme_km_var ;
+
+create table srivaabg_v4_wamd_dme_km_var as
+
+select c.*, cast(year(index_avegf) as varchar) as avegf_year
+from
+    (
+    select b.*, round(months_between(b.dat_52w,b.index_avegf),0) as datediff_52w 
+              , datediff(b.dat_52w,b.index_avegf) as datediff_52w_days 
+              , case when (censoring_date < event_date_52w) then 0
+                     when (censoring_date >= event_date_52w) then 1
+                        else null
+                        end as event_censor_var_52w
+			  , round(months_between(b.dat_26w,b.index_avegf),0) as datediff_26w 
+              , datediff(b.dat_26w,b.index_avegf) as datediff_26w_days 
+              , case when (censoring_date < event_date_26w) then 0
+                     when (censoring_date >= event_date_26w) then 1
+                        else null
+                        end as event_censor_var_26w			
+    from
+        (
+        select *, case when  censoring_date is not null
+                            and event_date_52w is not null
+                            and event_date_52w <= censoring_date 
+                            and event_date_52w = post_2yr_trt_end_52w_dt 
+                        then date_add(event_date_52w, -365)
+                         -- then least(censoring_date, event_date_52w) 
+                         
+                         when censoring_date is not null
+                            and event_date_52w is not null
+                            and event_date_52w <= censoring_date 
+                            and event_date_52w = pst_2yr_trt_grtr_52w_gap_dt 
+                         then event_date_52w
+                         
+                         when (censoring_date is not null and event_date_52w is not null 
+                            and censoring_date < event_date_52w)
+                         then censoring_date
+                         
+                         when (censoring_date is null and event_date_52w is not null 
+                            and event_date_52w = post_2yr_trt_end_52w_dt )
+                         then date_add(event_date_52w, -365)
+                         
+                         when  (censoring_date is null and event_date_52w is not null  
+                            and event_date_52w = pst_2yr_trt_grtr_52w_gap_dt )
+                         then event_date_52w
+                         
+                         when  (censoring_date is not null and event_date_52w is null)
+                         then censoring_date
+                         else null
+                end as dat_52w
+				, case when  censoring_date is not null
+                            and event_date_26w is not null
+                            and event_date_26w <= censoring_date 
+                            and event_date_26w = post_2yr_trt_end_26w_dt 
+                        then date_add(event_date_26w, -182)
+                         -- then least(censoring_date, event_date_26w) 
+                         
+                         when censoring_date is not null
+                            and event_date_26w is not null
+                            and event_date_26w <= censoring_date 
+                            and event_date_26w = pst_2yr_trt_grtr_26w_gap_dt 
+                         then event_date_26w
+                         
+                         when (censoring_date is not null and event_date_26w is not null 
+                            and censoring_date < event_date_26w)
+                         then censoring_date
+                         
+                         when (censoring_date is null and event_date_26w is not null 
+                            and event_date_26w = post_2yr_trt_end_26w_dt )
+                         then date_add(event_date_26w, -182)
+                         
+                         when  (censoring_date is null and event_date_26w is not null  
+                            and event_date_26w = pst_2yr_trt_grtr_26w_gap_dt )
+                         then event_date_26w
+                         
+                         when  (censoring_date is not null and event_date_26w is null)
+                         then censoring_date
+                         else null
+                end as dat_26w
+        from srivaabg_v4_wamd_dme_event_date 
+        ) as b
+    order by enrolid
+    ) as c;
+
+
+select * from srivaabg_v4_wamd_dme_km_var where 2yr_trt_grtr_52w_gap = 0;
+
+-- Code for Charlson Comorbidity 
+-- Code for inpatient service pre index table
+-- Creating pre-index inpatient and outpatient masters
+-- -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- CCAE
+-- INPATIENT SERVICES
+
+drop table if exists srivaabg_v4_ccaemdcr_pre_i ;
+ 
+create table srivaabg_v4_ccaemdcr_pre_i as
+select a.enrolid, a.admdate as svcdate, a.pdx, a.dx1, a.dx2, a.dx3, a.dx4, a.dx5, b.index_avegf as index_svcdate, a.dxver
+from src_marketscan.ccae_mdcr_s as a
+inner join srivaabg_v4_wamd_dme_km_var as b
+on a.enrolid = b.enrolid 
+and datediff(b.index_avegf, a.admdate) between 0 and 182
+and a.admdate < b.index_avegf;
+
+
+--OUTPATIENT SERVICES
+drop table if exists srivaabg_v4_ccaemdcr_pre_o;
+
+
+create table srivaabg_v4_ccaemdcr_pre_o as
+select a.enrolid, a.svcdate, a.dx1, a.dx2, a.dx3, a.dx4, a.dx5, b.index_avegf as index_svcdate, a.dxver
+from src_marketscan.ccae_mdcr_o as a
+inner join srivaabg_v4_wamd_dme_km_var as b
+on a.enrolid = b.enrolid 
+and datediff(b.index_avegf, a.svcdate) between 0 and 182
+and a.svcdate < b.index_avegf;
+
+-- Code for pre index diagnosis
+
+
+--Creating a pre index Diagnosis master which contains all the diagnosis for a particular patient before the index date
+drop table if exists srivaabg_v4_av_preindex_dx;
+
+
+create table srivaabg_v4_av_preindex_dx as
+select enrolid, index_svcdate, pdx as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_i
+union
+select enrolid, index_svcdate, dx1 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_i
+union
+select enrolid, index_svcdate, dx2 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_i
+union
+select enrolid, index_svcdate, dx3 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_i
+union
+select enrolid, index_svcdate, dx4 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_i
+union
+select enrolid, index_svcdate, dx5 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_i
+union
+select enrolid, index_svcdate, dx1 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_o
+union
+select enrolid, index_svcdate, dx2 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_o
+union
+select enrolid, index_svcdate, dx3 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_o
+union
+select enrolid, index_svcdate, dx4 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_o
+union
+select enrolid, index_svcdate, dx5 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_o;
+
+select * from cci_codes;
+
+
+#Note change the table name while checking the CCI codes
+
+--Creating flags
+drop table if exists srivaabg_v4_av_cci;
+
+create table srivaabg_v4_av_cci as
+select enrolid, index_svcdate,
+                max(case when comorb ilike '%AIDS%' then 1 else 0 end) as CCI17_aidshiv,
+                max(case when comorb ilike '%Any primary malignancy%' then 1 else 0 end) as CCI14_cncr,
+                max(case when comorb ilike '%Cerebrovascular disease%' then 1 else 0 end) as CCI4_cvd,
+                max(case when comorb ilike '%Chronic pulmonary disease%' then 1 else 0 end) as CCI6_cpd,
+                max(case when comorb ilike '%Congestive heart failure%' then 1 else 0 end) as CCI2_chf,
+                max(case when comorb ilike '%Rheumatologic Disease%' then 1 else 0 end) as CCI7_ctdrd,
+                max(case when comorb ilike '%Dementia%' then 1 else 0 end) as CCI5_dem,
+                max(case when comorb ilike '%Diabetes with CC%' then 1 else 0 end) as CCI11_dbc,
+                max(case when comorb ilike '%Diabetes without CC%' then 1 else 0 end) as CCI10_dbwc,
+                max(case when comorb ilike '%Metastatic solid tumor%' then 1 else 0 end) as CCI16_mc,
+                max(case when comorb ilike '%Mild liver disease%' then 1 else 0 end) as CCI9_mld,
+                max(case when comorb ilike '%Moderate and severe liver disease%' then 1 else 0 end) as CCI15_msld,
+                max(case when comorb ilike '%Myocardial infarction%' then 1 else 0 end) as CCI1_mi,
+                max(case when comorb ilike '%Hemiplegia or parapelgia%' then 1 else 0 end) as CCI12_ph,
+                max(case when comorb ilike '%Peptic ulcer%' then 1 else 0 end) as CCI8_pud,
+                max(case when comorb ilike '%Peripheral vascular disease%' then 1 else 0 end) as CCI3_pvd,
+                max(case when comorb ilike '%Renal Disease%' then 1 else 0 end) as CCI13_rd
+from
+    (
+    select a.*, b.comorb, b.icd_code, b.comorb_type
+    from srivaabg_v4_av_preindex_dx as a
+    inner join cci_codes as b
+    ON a.dx = b.diag
+    AND b.comorb_type ilike 'Charlson'
+    ) as a
+group by enrolid, index_svcdate;
+
+
+
+--Creating flags
+select * from ocd_codes_v3;
+
+drop table if exists srivaabg_v4_av_ocd;
+
+
+create table srivaabg_v4_av_ocd as
+select enrolid, index_svcdate,
+		max(case when disease ilike '%Chol_ele%' then 1 else 0 end) as Cholesterol_Elevated,
+		max(case when disease ilike '%Depression%' then 1 else 0 end) as Depression,
+		max(case when disease ilike '%Atherosclerosis%' then 1 else 0 end) as Atherosclerosis,
+		max(case when disease ilike '%cor_art_plaq%' then 1 else 0 end) as Coronary_Artery_Plaque,
+		max(case when disease ilike '%chd%' then 1 else 0 end) as Coronary_Heart_Disease,
+		max(case when disease ilike '%Hypertension%' then 1 else 0 end) as Hypertension,
+		max(case when disease ilike '%Stroke%' then 1 else 0 end) as Stroke,
+		max(case when disease ilike '%Ext_injury%' then 1 else 0 end) as External_Injury,
+		max(case when disease ilike '%Glaucoma%' then 1 else 0 end) as Glaucoma,
+		max(case when disease ilike '%Emphysema%' then 1 else 0 end) as Emphysema,
+		max(case when disease ilike '%Arthritis%' then 1 else 0 end) as Arthritis,
+		max(case when disease ilike '%bone_frc%' then 1 else 0 end) as Bone_Fracture,
+		max(case when disease ilike '%Cataract%' then 1 else 0 end) as Cataract,
+		max(case when disease ilike '%Diabetes%' then 1 else 0 end) as Diabetes,
+		max(case when disease ilike '%TDM%' then 1 else 0 end) as Thyroid_Disorder_withMedication,
+		max(case when disease ilike '%COPD%' then 1 else 0 end) as Chronic_Obstructive_Pulmonary_Disease,
+		max(case when disease ilike '%Hyperopia%' then 1 else 0 end) as Hyperopia,
+		max(case when disease ilike '%Myopia%' then 1 else 0 end) as Myopia
+from
+    (
+    select a.*, b.disease, replace(b.icd_codes, '.','') as icd_codes, b.description, b.icd_version
+    from srivaabg_v4_av_preindex_dx as a
+    inner join ocd_codes_v3 as b
+    on a.dx = replace(b.icd_codes, '.','')
+    ) as a
+group by enrolid, index_svcdate;
+
+
+
+
+-- Add CCI flags and OCD flags to index master
+--, coalesce(b.cci,0) as cci, coalesce(b.new_cci,0) as new_cci
+
+drop table if exists srivaabg_v4_av_charlson_ocd_comorb;
+
+create table srivaabg_v4_av_charlson_ocd_comorb as
+select *, ( CCI1_mi+CCI2_chf+CCI3_pvd+CCI4_cvd+CCI5_dem+CCI6_cpd+CCI7_ctdrd+CCI8_pud 
+        + greatest(CCI9_mld*1,CCI15_msld*3)+greatest(CCI10_dbwc*1,CCI11_dbc*2)+(2*CCI12_ph) 
+        + (2*CCI13_rd)+ greatest(2*CCI14_cncr,6*CCI16_mc)+ (6*CCI17_aidshiv) ) as cci
+        , ( CCI1_mi + (2*CCI2_chf) + CCI3_pvd + CCI4_cvd + (2*CCI5_dem) + CCI6_cpd + CCI7_ctdrd 
+        + CCI8_pud + greatest(CCI9_mld*1,CCI15_msld*4) + greatest(CCI10_dbwc,CCI11_dbc*1) + (2*CCI12_ph) 
+        + (1*CCI13_rd)+ greatest(2*CCI14_cncr,6*CCI16_mc)+ (4*CCI17_aidshiv) ) as new_cci
+
+from
+    (
+    select a.*, coalesce(b.CCI1_mi,0) as CCI1_mi, 
+                coalesce(b.CCI2_chf,0) as CCI2_chf,
+                 coalesce(b.CCI3_pvd,0) as CCI3_pvd,
+                 coalesce(b.CCI4_cvd,0) as CCI4_cvd,
+                 coalesce(b.CCI5_dem,0) as CCI5_dem,
+                 coalesce(b.CCI6_cpd,0) as CCI6_cpd,
+                 coalesce(b.CCI7_ctdrd,0) as CCI7_ctdrd,
+                 coalesce(b.CCI8_pud,0) as CCI8_pud,
+                 coalesce(b.CCI9_mld,0) as CCI9_mld,
+                 coalesce(b.CCI10_dbwc,0) as CCI10_dbwc,
+                 coalesce(b.CCI11_dbc,0) as CCI11_dbc,
+                 coalesce(b.CCI12_ph,0) as CCI12_ph,
+                 coalesce(b.CCI13_rd,0) as CCI13_rd,
+                 coalesce(b.CCI14_cncr,0) as CCI14_cncr,
+                 coalesce(b.CCI15_msld,0) as CCI15_msld,
+                 coalesce(b.CCI16_mc,0) as CCI16_mc,
+                 coalesce(b.CCI17_aidshiv,0) as CCI17_aidshiv,
+                coalesce(c.Cholesterol_Elevated, 0) as Cholesterol_Elevated,
+                coalesce(c.Depression, 0) as Depression,
+                coalesce(c.Atherosclerosis, 0) as Atherosclerosis,
+                coalesce(c.Coronary_Artery_Plaque, 0) as Coronary_Artery_Plaque,
+                coalesce(c.Coronary_Heart_Disease, 0) as Coronary_Heart_Disease,
+                coalesce(c.Hypertension, 0) as Hypertension,
+                coalesce(c.Stroke, 0) as Stroke,
+                coalesce(c.Emphysema, 0) as Emphysema,
+                coalesce(c.Arthritis, 0) as Arthritis,
+                coalesce(c.Bone_Fracture, 0) as Bone_Fracture,
+                coalesce(c.External_Injury, 0) as External_Injury,
+                coalesce(c.Glaucoma, 0) as Glaucoma,
+                coalesce(c.Cataract, 0) as Cataract,
+                coalesce(c.Diabetes, 0) as Diabetes,
+                coalesce(c.Thyroid_Disorder_withMedication, 0) as Thyroid_Disorder_withMedication,
+                coalesce(c.Chronic_Obstructive_Pulmonary_Disease, 0) as Chronic_Obstructive_Pulmonary_Disease,
+                coalesce(c.Hyperopia, 0) as Hyperopia,
+                coalesce(c.Myopia, 0) as Myopia
+    from srivaabg_v4_wamd_dme_km_var as a
+    left join srivaabg_v4_av_cci as b
+    on a.enrolid = b.enrolid 
+    left join srivaabg_v4_av_ocd as c
+    on a.enrolid = c.enrolid
+    ) as b
+;
+
+----------------------------------------------------------
+--Adding flags for patient being non-persistent or discontinuing completely
+--srivaabg_v4_wamd_dme_trtgap_flags
+
+
+drop table if exists srivaabg_v4_wamd_dme_disc_np_flags;
+create table srivaabg_v4_wamd_dme_disc_np_flags as
+select a.*, b.avegf_post_52wdisc_dt, c.avegf_post_26wdisc_dt
+          , case when b.avegf_post_52wdisc_dt is not null then 'Non-Persistent' else 'Discontinued' end as disc_or_np_52w
+          , case when c.avegf_post_26wdisc_dt is not null then 'Non-Persistent' else 'Discontinued' end as disc_or_np_26w
+from srivaabg_v4_av_charlson_ocd_comorb as a
+left join
+    (
+    select a.enrolid, min(b.all_trt_dates) as avegf_post_52wdisc_dt
+    from srivaabg_v4_wamd_dme_km_var as a
+    inner join srivaabg_v4_wamd_dme_trtgap_flags as b
+    on a.enrolid = b.enrolid
+    and datediff(b.all_trt_dates,a.dat_52w) > 0 
+    and b.all_trt_dates <= '2020-06-30'
+    group by a.enrolid
+    ) as b
+on a.enrolid = b.enrolid
+left join
+    (
+    select a.enrolid, min(b.all_trt_dates) as avegf_post_26wdisc_dt
+    from srivaabg_v4_wamd_dme_km_var as a
+    inner join srivaabg_v4_wamd_dme_trtgap_flags as b
+    on a.enrolid = b.enrolid
+    and datediff(b.all_trt_dates,a.dat_26w) > 0 
+    and b.all_trt_dates <= '2020-06-30'
+    group by a.enrolid
+    ) as c
+on a.enrolid = c.enrolid;
+
+
+select diag, event_censor_var_52w, count(distinct enrolid) from srivaabg_v4_wamd_dme_disc_np_flags
+where 2yr_trt_grtr_52w_gap = 0 and disc_or_np_52w = 'Non-Persistent'
+group by diag, event_censor_var_52w;
+
+select diag, event_censor_var_52w, count(distinct enrolid) from srivaabg_v4_wamd_dme_disc_np_flags
+where 2yr_trt_grtr_52w_gap = 0 
+group by diag, event_censor_var_52w;
+
+--diag	event_censor_var_52w	count(distinct enrolid)
+--DME	0	                    2815
+--DME	1	                    614
+--WAMD	1	                    2076
+--WAMD	0	                    8477
+
+select diag, disc_or_np_52w, count(distinct enrolid) from srivaabg_v4_wamd_dme_disc_np_flags
+where 2yr_trt_grtr_52w_gap = 0 and event_censor_var_52w = 1
+group by diag, disc_or_np_52w;
+
+--diag	disc_or_np_52w	count(distinct enrolid)
+--WAMD	Non-Persistent	937
+--DME	Discontinued	373
+--WAMD	Discontinued	1139
+--DME	Non-Persistent	241
+
+select diag, disc_or_np_52w, count(distinct enrolid) from srivaabg_v4_wamd_dme_disc_np_flags
+where 2yr_trt_grtr_52w_gap = 0 and event_censor_var_52w = 0
+group by diag, disc_or_np_52w;
+
+--diag	disc_or_np_52w	count(distinct enrolid)
+--WAMD	Non-Persistent	89
+--DME	Discontinued	2743
+--WAMD	Discontinued	8388
+--DME	Non-Persistent	72
+
+select diag,  count(distinct enrolid) 
+from srivaabg_v4_wamd_dme_disc_np_flags
+where 2yr_trt_grtr_52w_gap = 0 and event_censor_var_52w = 0 and dat_52w = '2020-06-30'
+group by diag;
+
+--diag	count(distinct enrolid)
+--WAMD	2542
+--DME	1379
+
+
+drop table if exists srivaabg_v4_av_demographics;
+
+create table srivaabg_v4_av_demographics as
+select * 
+          , case when 2yr_trt_less_25d_gap = 1 and datediff(2yr_trt_less_25d_gap_date_upd, index_avegf) between 0 and 365 
+                 then 1 
+                 else 0 end as first_yr_bi
+          , case when datediff(2yr_trt_less_25d_gap_date_upd, index_avegf) >= 366 
+                 then 1 
+                 else 0 end as second_yr_bi 
+from
+    (
+    select d.*, case when c.region = '1' then 'NorthEast'
+                     when c.region = '2' then 'North Central'
+                     when c.region = '3' then 'South'
+                     when c.region = '4' then 'West'
+                     when c.region = '5' then 'Missing/Unknown'
+                     when c.region ilike '%,%' then 'Missing/Unknown'
+                     else 'Missing/Unknown'
+                     end as region_grp
+                     
+              , case when c.plantyp = '1' then 'BasicMajor medical'
+                     when c.plantyp = '2' then 'Comprehensive'
+                     when c.plantyp = '3' then 'EPO'
+                     when c.plantyp = '4' then 'HMO'
+                     when c.plantyp = '5' then 'POS'
+                     when c.plantyp = '6' then 'PPO'
+                     when c.plantyp = '7' then 'POS with capitation'
+                     when c.plantyp = '8' then 'CDHP'
+                     when c.plantyp = '9' then 'HDHP'
+                     when c.plantyp ilike '%,%' then 'Missing/Unknown'
+                     else 'Missing/Unknown'
+                     end as plantyp_grp
+              , case when c.eestatu = '1' then 'Active Full time'
+                     when c.eestatu = '2' then 'Active Part time or Seasonal'
+                     when c.eestatu = '3' then 'Early Retiree'
+                     when c.eestatu = '4' then 'Medical eligible retiree'
+                     when c.eestatu = '5' then 'Retiree (Status Unknown)'
+                     when c.eestatu = '6' then 'COBRA continuee'
+                     when c.eestatu = '7' then 'Long term Disability'
+                     when c.eestatu = '8' then 'Surviving Spouse/Depend'
+                     when c.eestatu = '9' then 'Other/Unknown'
+                     when c.eestatu ilike '%,%' then 'Missing/Unknown'
+                     else 'Missing/Unknown'
+                     end as eestatu_grp
+              , case when d.age_avegf between 18 and 39 then '18-39'
+                     when d.age_avegf between 40 and 64 then '40-64'
+                     when d.age_avegf between 65 and 74 then '65-74'
+                     when d.age_avegf >= 75 then '75+'
+                     else 'Missing/Unknown'
+                     end as age_grp
+              , case when d.cci = 0 then '0'
+                     when d.cci = 1 then '1'
+                     when d.cci = 2 then '2'
+                     when d.cci >= 3 then '3+' 
+                     else 'Missing/Unknown'
+                     end as cci_grp
+              , case when d.new_cci = 0 then '0'
+                     when d.new_cci = 1 then '1'
+                     when d.new_cci = 2 then '2'
+                     when d.new_cci >= 3 then '3+' 
+                     else 'Missing/Unknown'
+                     end as new_cci_grp   
+              
+              , case when d.2yr_trt_less_25d_gap = 1 and d.2yr_trt_less_25d_gap_date is null then d.index_avegf else d.2yr_trt_less_25d_gap_date 
+                    end as 2yr_trt_less_25d_gap_date_upd
+              
+    from srivaabg_v4_wamd_dme_disc_np_flags as d
+    left join
+        (
+        select a.enrolid, a.index_avegf, group_concat(distinct cast(b.region as varchar),',') as region
+                                               , group_concat(distinct cast(b.plantyp as varchar),',') as plantyp
+                                               , group_concat(distinct cast(b.eestatu as varchar),',') as eestatu
+        from srivaabg_v4_wamd_dme_disc_np_flags as a
+        inner join
+        (
+            select enrolid, svcdate, region, plantyp, eestatu
+            from src_marketscan.ccae_mdcr_o
+            where svcdate between cast('2011-01-01' as timestamp) and cast('2020-06-30' as timestamp)
+    
+            union all
+    
+            select enrolid, svcdate, region, plantyp, eestatu
+            from src_marketscan.ccae_mdcr_s
+            where svcdate between cast('2011-01-01' as timestamp) and cast('2020-06-30' as timestamp)
+    
+            union all
+    
+            select enrolid, svcdate, region, plantyp, eestatu
+            from src_marketscan.ccae_mdcr_d
+            where svcdate between cast('2011-01-01' as timestamp) and cast('2020-06-30' as timestamp)
+    
+        ) as b
+        on a.enrolid = b.enrolid
+        and a.index_avegf = b.svcdate
+        group by a.enrolid, a.index_avegf
+        ) as c
+    on d.enrolid = c.enrolid
+    ) as e
+;
+
+
+select diag, count(distinct enrolid) from srivaabg_v4_av_demographics
+where 2yr_trt_grtr_52w_gap = 0
+group by diag;
+
+--diag	    count(distinct enrolid)
+--WAMD	    10553
+--DME	    3429
+
+select * from srivaabg_v4_av_demographics
+where 2yr_trt_grtr_52w_gap = 0 ;
+
+select diag, count(distinct enrolid) from srivaabg_v4_av_demographics
+where 2yr_trt_grtr_52w_gap = 0 and (first_yr_bi =1 or second_yr_bi =1)
+group by diag;
+
+--diag	count(distinct enrolid)
+--WAMD	2959
+--DME	1893
+
+
+-- , min(days_to_bilateral_evidence), max(days_to_bilateral_evidence)
+select diag, min(bilateral_gap), max(bilateral_gap) from srivaabg_v4_av_demographics
+where 2yr_trt_grtr_52w_gap = 0 and 2yr_trt_less_25d_gap = 1
+group by diag;
+
+select * from srivaabg_v4_av_demographics
+where 2yr_trt_grtr_52w_gap = 0 and 2yr_trt_less_25d_gap = 1 and days_to_bilateral_evidence > 730;
+
+select enrolid, index_avegf, diag, 2yr_trt_grtr_52w_gap, 2yr_trt_less_25d_gap_date, 2yr_trt_less_25d_gap, days_to_bilateral_evidence, first_yr_bi, second_yr_bi
+from srivaabg_v4_av_demographics
+where 2yr_trt_grtr_52w_gap = 0 and 2yr_trt_less_25d_gap = 1;
+
+select * from srivaabg_v4_wamd_dme_trtgap_flags where enrolid = 746146301
+order by all_trt_dates;
+
+
+select diag, bilateral_gap, count(*), count(distinct enrolid)
+from srivaabg_v4_av_demographics
+where 2yr_trt_grtr_52w_gap = 0 and 2yr_trt_less_25d_gap = 1
+group by diag, bilateral_gap;
+
+select diag, count(*), count(distinct enrolid)
+from srivaabg_v4_av_demographics
+where (first_yr_bi =1 and second_yr_bi =1)
+group by diag;
+-- 0 results
+
+
+
+select diag, count(*), count(distinct enrolid)
+from srivaabg_v4_av_demographics
+where 2yr_trt_grtr_52w_gap = 0 and first_yr_bi = 0 and second_yr_bi = 0
+group by diag;
+
+--diag	count(*)	count(distinct enrolid)
+--WAMD	7594	    7594
+--DME	1536	    1536
+
+--Adding flags for any bilaterality evidence in 2nd year i.e. 13-24th month
+
+
+drop table if exists srivaabg_v4_bilateral_flags;
+create table srivaabg_v4_bilateral_flags as
+select a.*, b.bilateral_gap_2nd_yr, coalesce(b.2yr_trt_less_25d_gap_2ndyr,0) as 2yr_trt_less_25d_gap_2ndyr
+          , coalesce(c.2yr_trt_less_21d_gap,0) as 2yr_trt_less_21d_gap
+		  , c.2yr_trt_less_21d_gap_date as 2yr_trt_less_21d_gap_date
+		  , c.cons_datediff as bilateral_21d_gap
+		  
+		  , coalesce(d.2yr_trt_less_15d_gap,0) as 2yr_trt_less_15d_gap
+		  , d.2yr_trt_less_15d_gap_date as 2yr_trt_less_15d_gap_date
+		  , d.cons_datediff as bilateral_15d_gap
+from srivaabg_v4_av_demographics as a
+left join
+    (
+    select enrolid, 2yr_trt_less_25d_gap_2ndyr, 2yr_trt_less_25d_gap_date, min(cons_datediff) as bilateral_gap_2nd_yr
+    from
+        (
+        select b.enrolid, b.2yr_trt_less_25d_gap_2ndyr, cons_datediff, b.prev_trt_date as 2yr_trt_less_25d_gap_date
+                    , rank() over (partition by enrolid order by prev_trt_date)as ranking
+                                                
+        from
+            (
+            select a.enrolid, a.prev_trt_date, cons_datediff, a.all_trt_dates, 1 as 2yr_trt_less_25d_gap_2ndyr
+            from (
+                 select * , lag(all_trt_dates,1) over(partition by enrolid order by all_trt_dates) as prev_trt_date
+                 from         
+                  (select distinct *  from srivaabg_v4_wamd_dme_trtgap_flags
+                  ) as t 
+                 ) as a
+            where ((rec_within_24mon = 1 or (rec_within_24mon = 2 and rank = 1)) and less_25d_gap = 1)
+            and datediff(all_trt_dates,index_avegf) > 365
+            order by enrolid, all_trt_dates
+            ) as b
+        --group by b.enrolid, b.2yr_trt_less_25d_gap   
+        ) as g
+    where ranking = 1 
+    group by enrolid, 2yr_trt_less_25d_gap_2ndyr, 2yr_trt_less_25d_gap_date
+    ) as b
+on a.enrolid = b.enrolid
+left join
+    (
+    select enrolid, 2yr_trt_less_21d_gap, 2yr_trt_less_21d_gap_date, min(cons_datediff) as cons_datediff
+    from
+        (
+        select b.enrolid, b.2yr_trt_less_21d_gap, cons_datediff, b.prev_trt_date as 2yr_trt_less_21d_gap_date
+                    , rank() over (partition by enrolid order by prev_trt_date)as ranking
+                                                
+        from
+            (
+            select a.enrolid, a.prev_trt_date, cons_datediff, a.all_trt_dates, 1 as 2yr_trt_less_21d_gap
+            from (
+                 select * , lag(all_trt_dates,1) over(partition by enrolid order by all_trt_dates) as prev_trt_date
+                 from         
+                  (select distinct *  from srivaabg_v4_wamd_dme_trtgap_flags
+                  ) as t 
+                 ) as a
+            where ((rec_within_24mon = 1 or (rec_within_24mon = 2 and rank = 1)) and less_21d_gap = 1)
+            order by enrolid, all_trt_dates
+            ) as b
+        --group by b.enrolid, b.2yr_trt_less_21d_gap   
+        ) as g
+    where ranking = 1 
+    group by enrolid, 2yr_trt_less_21d_gap, 2yr_trt_less_21d_gap_date
+    ) as c
+on a.enrolid = c.enrolid
+left join
+    (
+    select enrolid, 2yr_trt_less_15d_gap, 2yr_trt_less_15d_gap_date, min(cons_datediff) as cons_datediff
+    from
+        (
+        select b.enrolid, b.2yr_trt_less_15d_gap, cons_datediff, b.prev_trt_date as 2yr_trt_less_15d_gap_date
+                    , rank() over (partition by enrolid order by prev_trt_date)as ranking
+                                                
+        from
+            (
+            select a.enrolid, a.prev_trt_date, cons_datediff, a.all_trt_dates, 1 as 2yr_trt_less_15d_gap
+            from (
+                 select * , lag(all_trt_dates,1) over(partition by enrolid order by all_trt_dates) as prev_trt_date
+                 from         
+                  (select distinct *  from srivaabg_v4_wamd_dme_trtgap_flags
+                  ) as t 
+                 ) as a
+            where ((rec_within_24mon = 1 or (rec_within_24mon = 2 and rank = 1)) and less_15d_gap = 1)
+            order by enrolid, all_trt_dates
+            ) as b
+        --group by b.enrolid, b.2yr_trt_less_15d_gap   
+        ) as g
+    where ranking = 1 
+    group by enrolid, 2yr_trt_less_15d_gap, 2yr_trt_less_15d_gap_date
+    ) as d
+on a.enrolid = d.enrolid
+
+;
+
+select diag, count(*), count(distinct enrolid)
+from srivaabg_v4_bilateral_flags
+where 2yr_trt_grtr_52w_gap = 0 and 2yr_trt_less_25d_gap_2ndyr = 0
+group by diag;
+
+--diag	count(*)	count(distinct enrolid)
+--WAMD	8478	    8478
+--DME	2071	    2071
+
+select diag, count(*), count(distinct enrolid)
+from srivaabg_v4_bilateral_flags
+where 2yr_trt_grtr_26w_gap = 0 and 2yr_trt_less_25d_gap_2ndyr = 0
+group by diag;
+
+--diag	count(*)	count(distinct enrolid)
+--WAMD	6364	    6364
+--DME	1113	    1113
+
+select diag, count(*), count(distinct enrolid)
+from srivaabg_v4_bilateral_flags
+where 2yr_trt_grtr_52w_gap = 0 and second_yr_bi = 0
+group by diag;
+--diag	count(*)	count(distinct enrolid)
+--WAMD	9733    	9733
+--DME	3125    	3125
+
+select diag, count(*), count(distinct enrolid)
+from srivaabg_v4_bilateral_flags
+where 2yr_trt_grtr_26w_gap = 0 and second_yr_bi = 0
+group by diag;
+
+--diag	count(*)	count(distinct enrolid)
+--WAMD	7448	    7448
+--DME	1842	    1842
+
+
+select diag, count(*), count(distinct enrolid)
+from srivaabg_v4_bilateral_flags
+where 2yr_trt_grtr_52w_gap = 0 and 2yr_trt_less_21d_gap = 0
+group by diag;
+
+--diag	count(*)	count(distinct enrolid)
+--WAMD	7851	    7851
+--DME	1599	    1599
+
+
+select diag, count(*), count(distinct enrolid)
+from srivaabg_v4_bilateral_flags
+where 2yr_trt_grtr_26w_gap = 0 and 2yr_trt_less_21d_gap = 0
+group by diag;
+
+--diag	count(*)	count(distinct enrolid)
+--WAMD	5897	    5897
+--DME	880 	    880
+
+
+select diag, count(*), count(distinct enrolid)
+from srivaabg_v4_bilateral_flags
+where 2yr_trt_grtr_52w_gap = 0 and 2yr_trt_less_15d_gap = 0
+group by diag;
+
+--diag	count(*)	count(distinct enrolid)
+--WAMD	8167	    8167
+--DME	1702	    1702
+
+
+select diag, count(*), count(distinct enrolid)
+from srivaabg_v4_bilateral_flags
+where 2yr_trt_grtr_26w_gap = 0 and 2yr_trt_less_15d_gap = 0
+group by diag;
+
+
+--diag	count(*)	count(distinct enrolid)
+--WAMD	6141	    6141
+--DME	934	        934
+
+
+select *  
+from src_marketscan.r_phys_specialty 
+;
+
+select *
+from src_marketscan.ccae_mdcr_o 
+;
+
+select * from  srivaabg_v4_wamd_dme_trtgap_flags  where enrolid = 743200901 order by enrolid, all_trt_dates;
+
+
+
+drop table if exists srivaabg_v4_zip_pov_spec_cnsr_rsn ;
+create table srivaabg_v4_zip_pov_spec_cnsr_rsn as
+
+select e.*, case when f.stdprov ilike '%,%' then 'Unknown' else f.stdprov end as stdprov_grp
+          , case when f.drug_name ilike '%,%' then 'Eylea' else f.drug_name end as drug_name_grp
+          , case when f.provzip ilike '%,%' then 'Unknown' else f.provzip end as provzip_grp
+          , case when e.datediff_52w <= 24 then 'by 24 months'
+                 when e.datediff_52w <= 30 then 'by 30 months'    
+                 when e.datediff_52w <= 36 then 'by 36 months'
+                 when e.datediff_52w <= 42 then 'by 42 months'
+                 when e.datediff_52w <= 48 then 'by 48 months'
+                 when e.datediff_52w <= 54 then 'by 54 months'
+                 when e.datediff_52w <= 60 then 'by 60 months'
+                 when e.datediff_52w > 60 then 'post 60 months'
+                 else 'Unknown' 
+                 end as datediff_52w_grp
+          , case when e.datediff_26w <= 24 then 'by 24 months'
+                 when e.datediff_26w <= 30 then 'by 30 months'    
+                 when e.datediff_26w <= 36 then 'by 36 months'
+                 when e.datediff_26w <= 42 then 'by 42 months'
+                 when e.datediff_26w <= 48 then 'by 48 months'
+                 when e.datediff_26w <= 54 then 'by 54 months'
+                 when e.datediff_26w <= 60 then 'by 60 months'
+                 when e.datediff_26w > 60 then 'post 60 months'
+                 else 'Unknown' 
+                 end as datediff_26w_grp 
+          , case when e.event_censor_var_52w = 1 then '52 weeks gap'
+                 when e.event_censor_var_52w = 0 and dat_52w = '2020-06-30' then 'Reached study end'
+                 when e.event_censor_var_52w = 0 and dat_52w < '2020-06-30' then 'Disenrolment'
+                 else 'Unknown'
+                 end as censor_reason_52w
+          , case when e.event_censor_var_26w = 1 then '26 weeks gap'
+                 when e.event_censor_var_26w = 0 and dat_26w = '2020-06-30' then 'Reached study end'
+                 when e.event_censor_var_26w = 0 and dat_26w < '2020-06-30' then 'Disenrolment'
+                 else 'Unknown'
+                 end as censor_reason_26w       
+          , case when f.sex = '1' then 'Male' else 'Female' end as gender          
+from srivaabg_v4_bilateral_flags as e
+left join
+    (
+    select c.enrolid, c.sex, c.stdprov, c.provzip, group_concat(distinct cast(d.drug_name as varchar),',') as drug_name
+    from
+        (
+        select a.enrolid, b.sex, group_concat(distinct cast(b.stdprov as varchar),',') as stdprov
+                        , group_concat(distinct cast(b.provzip as varchar),',') as provzip
+        from srivaabg_v4_bilateral_flags as a
+        left join
+            (
+            select distinct c.enrolid, d.index_avegf, c.sex, c.stdprov, c.provzip
+            from 
+                (
+                select enrolid, svcdate, sex, cast(stdprov as varchar) as stdprov, cast(provzip as varchar) as provzip  
+                from src_marketscan.ccae_mdcr_o as a
+                union
+                select enrolid, svcdate, sex, cast(stdprov as varchar) as stdprov, cast(provzip as varchar) as provzip  
+                from src_marketscan.ccae_mdcr_s as b
+                union 
+                select enrolid, svcdate, sex, 'NA' as std_prov, 'NA' as provzip 
+                from src_marketscan.ccae_mdcr_d as b
+                ) as c
+            join srivaabg_v4_bilateral_flags as d
+            on c.enrolid = d.enrolid
+            and d.index_avegf = c.svcdate
+            ) as b
+        on a.enrolid = b.enrolid
+        group by a.enrolid, b.sex
+        ) as c
+    left join
+        (
+        select distinct a.enrolid, a.index_avegf, b.drug_name
+        from srivaabg_v4_bilateral_flags as a
+        left join srivaabg_v4_wamd_dme_pat_antivegf as b
+        on a.enrolid = b.enrolid
+        and a.index_avegf = b.avegf_date
+        ) as d
+    on c.enrolid = d.enrolid
+    group by c.enrolid, c.sex, c.stdprov, c.provzip
+    ) as f
+on e.enrolid = f.enrolid;
+
+
+select diag, censor_reason_52w, count(distinct enrolid), count(*)
+from srivaabg_v4_zip_pov_spec_cnsr_rsn as a
+where 2yr_trt_grtr_52w_gap = 0 
+group by diag, censor_reason_52w
+
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_zip_pov_spec_cnsr_rsn
+group by diag;
+
+
+-- For Secondary objective (52/26 weeks weekly)
+
+drop table if exists srivaabg_v4_cohort_disc_bil_flag_so;
+create table srivaabg_v4_cohort_disc_bil_flag_so as
+select *
+from srivaabg_v4_wamd_dme_pat_att_flags
+where ce_rx_6m_bl = 1 and diag_6m_pre = 1 and age_ge18 = 1 
+;
+
+drop table if exists srivaabg_v4_wamd_dme_inj_fre_grps_so ;
+
+create table srivaabg_v4_wamd_dme_inj_fre_grps_so as
+select a.*, b.distinct_inj, c.avg_trt_gap
+            , case when b.distinct_inj between 1 and 3 then 'a. 1-3'
+                 when b.distinct_inj between 4 and 8 then 'b. 4-8'
+                 when b.distinct_inj between 9 and 13 then 'c. 9-13'
+                 when b.distinct_inj between 14 and 18 then 'd. 14-18'
+                 when b.distinct_inj between 19 and 23 then 'e. 19-23'
+                 when b.distinct_inj >= 24 then 'f. >=24'
+                 else null
+                 end as inj_freq_grp 
+            , case when avg_trt_gap between 0 and 34 then 'a. 4 weeks'
+                 when avg_trt_gap between 35 and 48 then 'b. 6 weeks'
+                 when avg_trt_gap between 49 and 62 then 'c. 8 weeks'
+                 when avg_trt_gap between 63 and 76 then 'd. 10 weeks'
+                 when avg_trt_gap between 77 and 90 then 'e. 12 weeks'
+                 when avg_trt_gap > 90 then 'f. >12 weeks'
+                 else null
+                 end as inj_freq_grp_wks 
+            , a.dt_end_rx_sp as censoring_date
+from srivaabg_v4_cohort_disc_bil_flag_so as a
+left join
+    (
+    select enrolid, count(all_trt_dates) as distinct_inj
+    from srivaabg_v4_wamd_dme_trtgap_flags as a
+    where enrolid in (select distinct enrolid from srivaabg_v4_cohort_disc_bil_flag_so
+                                    ) 
+    group by enrolid
+    ) as b
+on a.enrolid = b.enrolid
+left join 
+    (
+    select b.enrolid, cast(round(avg(datediff),0) as int) as avg_trt_gap
+    from
+        (
+        select a.*, datediff(a.all_trt_dates, a.prev_trt_date) as datediff
+        from
+            (
+            select * 
+            from
+                (
+                select *, lag(all_trt_dates,1) over(partition by enrolid order by all_trt_dates) as prev_trt_date
+                        , dense_rank() over(partition by enrolid order by all_trt_dates desc) as rank_desc_new
+                from srivaabg_v4_wamd_dme_trtgap_flags as a
+                where enrolid in (select enrolid from srivaabg_v4_cohort_disc_bil_flag_so
+                                    )
+                ) as b                 
+            
+            where (rank_desc_new <= 4)
+            order by enrolid, all_trt_dates
+            ) as a
+        ) as b  
+    where b.datediff is not null    
+    group by enrolid
+    ) as c
+on a.enrolid = c.enrolid
+;
+
+
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_inj_fre_grps_so
+group by diag;
+
+select diag, inj_freq_grp_wks,count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_inj_fre_grps_so
+where distinct_inj > 3
+group by diag, inj_freq_grp_wks;
+
+
+
+--Adding event variable dates
+
+
+drop table if exists srivaabg_v4_wamd_dme_event_date_so ;
+ 
+create table srivaabg_v4_wamd_dme_event_date_so as
+
+select distinct a.*, c.post_2yr_trt_grtr_52w_gap, c.pst_2yr_trt_grtr_52w_gap_dt , d.post_2yr_trt_end_52w_dt
+                   , case when  c.pst_2yr_trt_grtr_52w_gap_dt is not null
+                            and d.post_2yr_trt_end_52w_dt is not null
+                         then least(c.pst_2yr_trt_grtr_52w_gap_dt, d.post_2yr_trt_end_52w_dt) 
+                         when  (c.pst_2yr_trt_grtr_52w_gap_dt is null and d.post_2yr_trt_end_52w_dt is not null)
+                         then d.post_2yr_trt_end_52w_dt
+                         when   (c.pst_2yr_trt_grtr_52w_gap_dt is not null and d.post_2yr_trt_end_52w_dt is null)
+                         then c.pst_2yr_trt_grtr_52w_gap_dt
+                         else null
+                         end as event_date_52w
+                   , e.post_2yr_trt_grtr_26w_gap, e.pst_2yr_trt_grtr_26w_gap_dt , f.post_2yr_trt_end_26w_dt
+                   , case when  e.pst_2yr_trt_grtr_26w_gap_dt is not null
+                            and f.post_2yr_trt_end_26w_dt is not null
+                         then least(e.pst_2yr_trt_grtr_26w_gap_dt, f.post_2yr_trt_end_26w_dt) 
+                         when  (e.pst_2yr_trt_grtr_26w_gap_dt is null and f.post_2yr_trt_end_26w_dt is not null)
+                         then f.post_2yr_trt_end_26w_dt
+                         when  (e.pst_2yr_trt_grtr_26w_gap_dt is not null and f.post_2yr_trt_end_26w_dt is null)
+                         then e.pst_2yr_trt_grtr_26w_gap_dt
+                         else null
+                         end as event_date_26w    
+from srivaabg_v4_wamd_dme_inj_fre_grps_so as a
+left join 
+    (
+    select b.enrolid, b.post_2yr_trt_grtr_52w_gap, min(b.prev_trt_date) as pst_2yr_trt_grtr_52w_gap_dt
+    from
+        (
+        select a.enrolid, a.prev_trt_date, a.all_trt_dates, 1 as post_2yr_trt_grtr_52w_gap
+        from (
+            select *, case when datediff(all_trt_dates, prev_trt_date) > 365 then 1 else 0 end as grtr_52w_gap
+            from
+                (
+                 select * , lag(all_trt_dates,1) over(partition by enrolid order by all_trt_dates) as prev_trt_date
+                        
+                 from (
+                        select distinct enrolid, all_trt_dates, index_avegf, rec_within_24mon 
+                        from srivaabg_v4_wamd_dme_trtgap_flags
+                        ) as d
+    			 where d.enrolid in (select enrolid from srivaabg_v4_cohort_disc_bil_flag_so
+                                        )						
+                 ) as c
+             ) as a
+        where grtr_52w_gap = 1
+        ) as b
+    group by b.enrolid, b.post_2yr_trt_grtr_52w_gap
+    order by b.enrolid
+    ) as c
+on a.enrolid = c.enrolid
+left join
+    (
+    select b.enrolid, date_add(max(b.post_2yr_trt_end_52w_dt),365) as post_2yr_trt_end_52w_dt
+    from
+        (
+        select a.enrolid, a.all_trt_dates as post_2yr_trt_end_52w_dt
+        from srivaabg_v4_wamd_dme_trtgap_flags as a
+		where enrolid in (select enrolid from srivaabg_v4_cohort_disc_bil_flag_so
+                                    )
+        
+        ) as b
+    group by b.enrolid
+    order by b.enrolid
+    ) as d
+on a.enrolid = d.enrolid
+left join 
+    (
+    select b.enrolid, b.post_2yr_trt_grtr_26w_gap, min(b.prev_trt_date) as pst_2yr_trt_grtr_26w_gap_dt
+    from
+        (
+        select a.enrolid, a.prev_trt_date, a.all_trt_dates, 1 as post_2yr_trt_grtr_26w_gap
+        from (
+            select *, case when datediff(all_trt_dates, prev_trt_date) > 182 then 1 else 0 end as grtr_26w_gap
+            from
+                (
+                 select * , lag(all_trt_dates,1) over(partition by enrolid order by all_trt_dates) as prev_trt_date
+                        
+                 from (
+                        select distinct enrolid, all_trt_dates, index_avegf, rec_within_24mon 
+                        from srivaabg_v4_wamd_dme_trtgap_flags
+                        ) as d
+    			 where d.enrolid in (select enrolid from srivaabg_v4_cohort_disc_bil_flag_so
+                                        )						
+                 ) as c
+             ) as a
+        where grtr_26w_gap = 1
+        ) as b
+    group by b.enrolid, b.post_2yr_trt_grtr_26w_gap
+    order by b.enrolid
+    ) as e
+on a.enrolid = e.enrolid
+left join
+    (
+    select b.enrolid, date_add(max(b.post_2yr_trt_end_26w_dt),182) as post_2yr_trt_end_26w_dt
+    from
+        (
+        select a.enrolid, a.all_trt_dates as post_2yr_trt_end_26w_dt
+        from srivaabg_v4_wamd_dme_trtgap_flags as a
+		where enrolid in (select enrolid from srivaabg_v4_cohort_disc_bil_flag_so
+                                    )
+        
+        ) as b
+    group by b.enrolid
+    order by b.enrolid
+    ) as f
+on a.enrolid = f.enrolid
+;
+
+
+select diag,count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_event_date_so
+where distinct_inj > 3
+group by diag;
+
+select * from srivaabg_v4_wamd_dme_event_date_so
+where distinct_inj > 3
+;
+
+select * from srivaabg_v4_wamd_dme_event_date_so
+where event_date_52w is null
+;--0 results
+
+select * from srivaabg_v4_wamd_dme_km_var_so
+where dat_52w is null
+;
+
+--Creating KM curves variables
+
+drop table if exists srivaabg_v4_wamd_dme_km_var_so ;
+
+create table srivaabg_v4_wamd_dme_km_var_so as
+
+select c.*, cast(year(index_avegf) as varchar) as avegf_year
+from
+    (
+    select b.*, round(months_between(b.dat_52w,b.index_avegf),0) as datediff_52w 
+              , datediff(b.dat_52w,b.index_avegf) as datediff_52w_days 
+              , case when (censoring_date < event_date_52w) then 0
+                     when (censoring_date >= event_date_52w) then 1
+                        else null
+                        end as event_censor_var_52w
+			  , round(months_between(b.dat_26w,b.index_avegf),0) as datediff_26w 
+              , datediff(b.dat_26w,b.index_avegf) as datediff_26w_days 
+              , case when (censoring_date < event_date_26w) then 0
+                     when (censoring_date >= event_date_26w) then 1
+                        else null
+                        end as event_censor_var_26w			
+    from
+        (
+        select *, case when  censoring_date is not null
+                            and event_date_52w is not null
+                            and event_date_52w <= censoring_date 
+                            and event_date_52w = post_2yr_trt_end_52w_dt 
+                        then date_add(event_date_52w, -365)
+                         -- then least(censoring_date, event_date_52w) 
+                         
+                         when censoring_date is not null
+                            and event_date_52w is not null
+                            and event_date_52w <= censoring_date 
+                            and event_date_52w = pst_2yr_trt_grtr_52w_gap_dt 
+                         then event_date_52w
+                         
+                         when (censoring_date is not null and event_date_52w is not null 
+                            and censoring_date < event_date_52w)
+                         then censoring_date
+                         
+                         when (censoring_date is null and event_date_52w is not null 
+                            and event_date_52w = post_2yr_trt_end_52w_dt )
+                         then date_add(event_date_52w, -365)
+                         
+                         when  (censoring_date is null and event_date_52w is not null  
+                            and event_date_52w = pst_2yr_trt_grtr_52w_gap_dt )
+                         then event_date_52w
+                         
+                         when  (censoring_date is not null and event_date_52w is null)
+                         then censoring_date
+                         else null
+                end as dat_52w
+				, case when  censoring_date is not null
+                            and event_date_26w is not null
+                            and event_date_26w <= censoring_date 
+                            and event_date_26w = post_2yr_trt_end_26w_dt 
+                        then date_add(event_date_26w, -182)
+                         -- then least(censoring_date, event_date_26w) 
+                         
+                         when censoring_date is not null
+                            and event_date_26w is not null
+                            and event_date_26w <= censoring_date 
+                            and event_date_26w = pst_2yr_trt_grtr_26w_gap_dt 
+                         then event_date_26w
+                         
+                         when (censoring_date is not null and event_date_26w is not null 
+                            and censoring_date < event_date_26w)
+                         then censoring_date
+                         
+                         when (censoring_date is null and event_date_26w is not null 
+                            and event_date_26w = post_2yr_trt_end_26w_dt )
+                         then date_add(event_date_26w, -182)
+                         
+                         when  (censoring_date is null and event_date_26w is not null  
+                            and event_date_26w = pst_2yr_trt_grtr_26w_gap_dt )
+                         then event_date_26w
+                         
+                         when  (censoring_date is not null and event_date_26w is null)
+                         then censoring_date
+                         else null
+                end as dat_26w
+        from srivaabg_v4_wamd_dme_event_date_so 
+        ) as b
+    order by enrolid
+    ) as c;
+
+select diag,count(*), count(distinct enrolid) from srivaabg_v4_wamd_dme_km_var_so
+where distinct_inj > 3
+group by diag;
+
+--diag	count(*)	count(distinct enrolid)
+--WAMD	35025	    35025
+--DME	20413	    20413
+
+select * from srivaabg_v4_wamd_dme_km_var_so
+where distinct_inj > 3 and event_censor_var_52w is null
+;--0 results
+
+select * from srivaabg_v4_wamd_dme_km_var_so
+where event_censor_var_52w is null
+;
+
+
+-- Code for Charlson Comorbidity 
+-- Code for inpatient service pre index table
+-- Creating pre-index inpatient and outpatient masters
+-- -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- CCAE
+-- INPATIENT SERVICES
+
+drop table if exists srivaabg_v4_ccaemdcr_pre_i_so ;
+ 
+create table srivaabg_v4_ccaemdcr_pre_i_so as
+select a.enrolid, a.admdate as svcdate, a.pdx, a.dx1, a.dx2, a.dx3, a.dx4, a.dx5, b.index_avegf as index_svcdate, a.dxver
+from src_marketscan.ccae_mdcr_s as a
+inner join srivaabg_v4_wamd_dme_km_var_so as b
+on a.enrolid = b.enrolid 
+and datediff(b.index_avegf, a.admdate) between 0 and 182
+and a.admdate < b.index_avegf;
+
+
+--OUTPATIENT SERVICES
+drop table if exists srivaabg_v4_ccaemdcr_pre_o_so;
+
+
+create table srivaabg_v4_ccaemdcr_pre_o_so as
+select a.enrolid, a.svcdate, a.dx1, a.dx2, a.dx3, a.dx4, a.dx5, b.index_avegf as index_svcdate, a.dxver
+from src_marketscan.ccae_mdcr_o as a
+inner join srivaabg_v4_wamd_dme_km_var_so as b
+on a.enrolid = b.enrolid 
+and datediff(b.index_avegf, a.svcdate) between 0 and 182
+and a.svcdate < b.index_avegf;
+
+-- Code for pre index diagnosis
+
+
+--Creating a pre index Diagnosis master which contains all the diagnosis for a particular patient before the index date
+drop table if exists srivaabg_v4_av_preindex_dx_so;
+
+
+create table srivaabg_v4_av_preindex_dx_so as
+select enrolid, index_svcdate, pdx as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_i_so
+union
+select enrolid, index_svcdate, dx1 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_i_so
+union
+select enrolid, index_svcdate, dx2 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_i_so
+union
+select enrolid, index_svcdate, dx3 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_i_so
+union
+select enrolid, index_svcdate, dx4 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_i_so
+union
+select enrolid, index_svcdate, dx5 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_i_so
+union
+select enrolid, index_svcdate, dx1 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_o_so
+union
+select enrolid, index_svcdate, dx2 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_o_so
+union
+select enrolid, index_svcdate, dx3 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_o_so
+union
+select enrolid, index_svcdate, dx4 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_o_so
+union
+select enrolid, index_svcdate, dx5 as dx, dxver as dxver
+from srivaabg_v4_ccaemdcr_pre_o_so;
+
+select * from cci_codes;
+
+
+--#Note change the table name while checking the CCI codes
+
+--Creating flags
+drop table if exists srivaabg_v4_av_cci_so;
+
+create table srivaabg_v4_av_cci_so as
+select enrolid, index_svcdate,
+                max(case when comorb ilike '%AIDS%' then 1 else 0 end) as CCI17_aidshiv,
+                max(case when comorb ilike '%Any primary malignancy%' then 1 else 0 end) as CCI14_cncr,
+                max(case when comorb ilike '%Cerebrovascular disease%' then 1 else 0 end) as CCI4_cvd,
+                max(case when comorb ilike '%Chronic pulmonary disease%' then 1 else 0 end) as CCI6_cpd,
+                max(case when comorb ilike '%Congestive heart failure%' then 1 else 0 end) as CCI2_chf,
+                max(case when comorb ilike '%Rheumatologic Disease%' then 1 else 0 end) as CCI7_ctdrd,
+                max(case when comorb ilike '%Dementia%' then 1 else 0 end) as CCI5_dem,
+                max(case when comorb ilike '%Diabetes with CC%' then 1 else 0 end) as CCI11_dbc,
+                max(case when comorb ilike '%Diabetes without CC%' then 1 else 0 end) as CCI10_dbwc,
+                max(case when comorb ilike '%Metastatic solid tumor%' then 1 else 0 end) as CCI16_mc,
+                max(case when comorb ilike '%Mild liver disease%' then 1 else 0 end) as CCI9_mld,
+                max(case when comorb ilike '%Moderate and severe liver disease%' then 1 else 0 end) as CCI15_msld,
+                max(case when comorb ilike '%Myocardial infarction%' then 1 else 0 end) as CCI1_mi,
+                max(case when comorb ilike '%Hemiplegia or parapelgia%' then 1 else 0 end) as CCI12_ph,
+                max(case when comorb ilike '%Peptic ulcer%' then 1 else 0 end) as CCI8_pud,
+                max(case when comorb ilike '%Peripheral vascular disease%' then 1 else 0 end) as CCI3_pvd,
+                max(case when comorb ilike '%Renal Disease%' then 1 else 0 end) as CCI13_rd
+from
+    (
+    select a.*, b.comorb, b.icd_code, b.comorb_type
+    from srivaabg_v4_av_preindex_dx_so as a
+    inner join cci_codes as b
+    ON a.dx = b.diag
+    AND b.comorb_type ilike 'Charlson'
+    ) as a
+group by enrolid, index_svcdate;
+
+
+
+--Creating flags
+select * from ocd_codes_v3;
+
+drop table if exists srivaabg_v4_av_ocd_so;
+
+
+create table srivaabg_v4_av_ocd_so as
+select enrolid, index_svcdate,
+		max(case when disease ilike '%Chol_ele%' then 1 else 0 end) as Cholesterol_Elevated,
+		max(case when disease ilike '%Depression%' then 1 else 0 end) as Depression,
+		max(case when disease ilike '%Atherosclerosis%' then 1 else 0 end) as Atherosclerosis,
+		max(case when disease ilike '%cor_art_plaq%' then 1 else 0 end) as Coronary_Artery_Plaque,
+		max(case when disease ilike '%chd%' then 1 else 0 end) as Coronary_Heart_Disease,
+		max(case when disease ilike '%Hypertension%' then 1 else 0 end) as Hypertension,
+		max(case when disease ilike '%Stroke%' then 1 else 0 end) as Stroke,
+		max(case when disease ilike '%Ext_injury%' then 1 else 0 end) as External_Injury,
+		max(case when disease ilike '%Glaucoma%' then 1 else 0 end) as Glaucoma,
+		max(case when disease ilike '%Emphysema%' then 1 else 0 end) as Emphysema,
+		max(case when disease ilike '%Arthritis%' then 1 else 0 end) as Arthritis,
+		max(case when disease ilike '%bone_frc%' then 1 else 0 end) as Bone_Fracture,
+		max(case when disease ilike '%Cataract%' then 1 else 0 end) as Cataract,
+		max(case when disease ilike '%Diabetes%' then 1 else 0 end) as Diabetes,
+		max(case when disease ilike '%TDM%' then 1 else 0 end) as Thyroid_Disorder_withMedication,
+		max(case when disease ilike '%COPD%' then 1 else 0 end) as Chronic_Obstructive_Pulmonary_Disease,
+		max(case when disease ilike '%Hyperopia%' then 1 else 0 end) as Hyperopia,
+		max(case when disease ilike '%Myopia%' then 1 else 0 end) as Myopia
+from
+    (
+    select a.*, b.disease, replace(b.icd_codes, '.','') as icd_codes, b.description, b.icd_version
+    from srivaabg_v4_av_preindex_dx_so as a
+    inner join ocd_codes_v3 as b
+    on a.dx = replace(b.icd_codes, '.','')
+    ) as a
+group by enrolid, index_svcdate;
+
+
+
+
+-- Add CCI flags and OCD flags to index master
+--, coalesce(b.cci,0) as cci, coalesce(b.new_cci,0) as new_cci
+
+drop table if exists srivaabg_v4_av_charlson_ocd_comorb_so;
+
+create table srivaabg_v4_av_charlson_ocd_comorb_so as
+select *, ( CCI1_mi+CCI2_chf+CCI3_pvd+CCI4_cvd+CCI5_dem+CCI6_cpd+CCI7_ctdrd+CCI8_pud 
+        + greatest(CCI9_mld*1,CCI15_msld*3)+greatest(CCI10_dbwc*1,CCI11_dbc*2)+(2*CCI12_ph) 
+        + (2*CCI13_rd)+ greatest(2*CCI14_cncr,6*CCI16_mc)+ (6*CCI17_aidshiv) ) as cci
+        , ( CCI1_mi + (2*CCI2_chf) + CCI3_pvd + CCI4_cvd + (2*CCI5_dem) + CCI6_cpd + CCI7_ctdrd 
+        + CCI8_pud + greatest(CCI9_mld*1,CCI15_msld*4) + greatest(CCI10_dbwc,CCI11_dbc*1) + (2*CCI12_ph) 
+        + (1*CCI13_rd)+ greatest(2*CCI14_cncr,6*CCI16_mc)+ (4*CCI17_aidshiv) ) as new_cci
+
+from
+    (
+    select a.*, coalesce(b.CCI1_mi,0) as CCI1_mi, 
+                coalesce(b.CCI2_chf,0) as CCI2_chf,
+                 coalesce(b.CCI3_pvd,0) as CCI3_pvd,
+                 coalesce(b.CCI4_cvd,0) as CCI4_cvd,
+                 coalesce(b.CCI5_dem,0) as CCI5_dem,
+                 coalesce(b.CCI6_cpd,0) as CCI6_cpd,
+                 coalesce(b.CCI7_ctdrd,0) as CCI7_ctdrd,
+                 coalesce(b.CCI8_pud,0) as CCI8_pud,
+                 coalesce(b.CCI9_mld,0) as CCI9_mld,
+                 coalesce(b.CCI10_dbwc,0) as CCI10_dbwc,
+                 coalesce(b.CCI11_dbc,0) as CCI11_dbc,
+                 coalesce(b.CCI12_ph,0) as CCI12_ph,
+                 coalesce(b.CCI13_rd,0) as CCI13_rd,
+                 coalesce(b.CCI14_cncr,0) as CCI14_cncr,
+                 coalesce(b.CCI15_msld,0) as CCI15_msld,
+                 coalesce(b.CCI16_mc,0) as CCI16_mc,
+                 coalesce(b.CCI17_aidshiv,0) as CCI17_aidshiv,
+                coalesce(c.Cholesterol_Elevated, 0) as Cholesterol_Elevated,
+                coalesce(c.Depression, 0) as Depression,
+                coalesce(c.Atherosclerosis, 0) as Atherosclerosis,
+                coalesce(c.Coronary_Artery_Plaque, 0) as Coronary_Artery_Plaque,
+                coalesce(c.Coronary_Heart_Disease, 0) as Coronary_Heart_Disease,
+                coalesce(c.Hypertension, 0) as Hypertension,
+                coalesce(c.Stroke, 0) as Stroke,
+                coalesce(c.Emphysema, 0) as Emphysema,
+                coalesce(c.Arthritis, 0) as Arthritis,
+                coalesce(c.Bone_Fracture, 0) as Bone_Fracture,
+                coalesce(c.External_Injury, 0) as External_Injury,
+                coalesce(c.Glaucoma, 0) as Glaucoma,
+                coalesce(c.Cataract, 0) as Cataract,
+                coalesce(c.Diabetes, 0) as Diabetes,
+                coalesce(c.Thyroid_Disorder_withMedication, 0) as Thyroid_Disorder_withMedication,
+                coalesce(c.Chronic_Obstructive_Pulmonary_Disease, 0) as Chronic_Obstructive_Pulmonary_Disease,
+                coalesce(c.Hyperopia, 0) as Hyperopia,
+                coalesce(c.Myopia, 0) as Myopia
+    from srivaabg_v4_wamd_dme_km_var_so as a
+    left join srivaabg_v4_av_cci_so as b
+    on a.enrolid = b.enrolid 
+    left join srivaabg_v4_av_ocd_so as c
+    on a.enrolid = c.enrolid
+    ) as b
+;
+
+
+select diag,count(*), count(distinct enrolid) from srivaabg_v4_av_charlson_ocd_comorb_so
+where distinct_inj > 3
+group by diag;
+
+--diag	count(*)	count(distinct enrolid)
+--WAMD	35025   	35025
+--DME	20413   	20413
+
+
+----------------------------------------------------------
+--Adding flags for patient being non-persistent or discontinuing completely
+--srivaabg_v4_wamd_dme_trtgap_flags
+
+
+drop table if exists srivaabg_v4_wamd_dme_disc_np_flags_so;
+create table srivaabg_v4_wamd_dme_disc_np_flags_so as
+select a.*, b.avegf_post_52wdisc_dt, c.avegf_post_26wdisc_dt
+          , case when b.avegf_post_52wdisc_dt is not null then 'Non-Persistent' else 'Discontinued' end as disc_or_np_52w
+          , case when c.avegf_post_26wdisc_dt is not null then 'Non-Persistent' else 'Discontinued' end as disc_or_np_26w
+from srivaabg_v4_av_charlson_ocd_comorb_so as a
+left join
+    (
+    select a.enrolid, min(b.all_trt_dates) as avegf_post_52wdisc_dt
+    from srivaabg_v4_wamd_dme_km_var_so as a
+    inner join srivaabg_v4_wamd_dme_trtgap_flags as b
+    on a.enrolid = b.enrolid
+    and datediff(b.all_trt_dates,a.dat_52w) > 0 
+    and b.all_trt_dates <= '2020-06-30'
+    group by a.enrolid
+    ) as b
+on a.enrolid = b.enrolid
+left join
+    (
+    select a.enrolid, min(b.all_trt_dates) as avegf_post_26wdisc_dt
+    from srivaabg_v4_wamd_dme_km_var_so as a
+    inner join srivaabg_v4_wamd_dme_trtgap_flags as b
+    on a.enrolid = b.enrolid
+    and datediff(b.all_trt_dates,a.dat_26w) > 0 
+    and b.all_trt_dates <= '2020-06-30'
+    group by a.enrolid
+    ) as c
+on a.enrolid = c.enrolid;
+
+
+select diag, event_censor_var_52w, count(distinct enrolid) from srivaabg_v4_wamd_dme_disc_np_flags_so
+group by diag, event_censor_var_52w;
+--diag	event_censor_var_52w	count(distinct enrolid)
+--DME	1	                        13999
+--WAMD	0	                        33393
+--WAMD	1	                        18470
+--DME	0	                        23528
+
+
+
+drop table if exists srivaabg_v4_bilateral_flags_so;
+create table srivaabg_v4_bilateral_flags_so as
+select a.*, coalesce(b.2yr_trt_less_25d_gap,0) as 2yr_trt_less_25d_gap
+		  , b.2yr_trt_less_25d_gap_date as 2yr_trt_less_25d_gap_date
+		  , b.cons_datediff as bilateral_25d_gap
+            
+          , coalesce(c.2yr_trt_less_21d_gap,0) as 2yr_trt_less_21d_gap
+		  , c.2yr_trt_less_21d_gap_date as 2yr_trt_less_21d_gap_date
+		  , c.cons_datediff as bilateral_21d_gap
+		  
+		  , coalesce(d.2yr_trt_less_15d_gap,0) as 2yr_trt_less_15d_gap
+		  , d.2yr_trt_less_15d_gap_date as 2yr_trt_less_15d_gap_date
+		  , d.cons_datediff as bilateral_15d_gap
+from srivaabg_v4_wamd_dme_disc_np_flags_so as a
+left join
+    (
+    select enrolid, 2yr_trt_less_25d_gap, 2yr_trt_less_25d_gap_date, min(cons_datediff) as cons_datediff
+    from
+        (
+        select b.enrolid, b.2yr_trt_less_25d_gap, cons_datediff, b.prev_trt_date as 2yr_trt_less_25d_gap_date
+                    , rank() over (partition by enrolid order by prev_trt_date)as ranking
+                                                
+        from
+            (
+            select a.enrolid, a.prev_trt_date, cons_datediff, a.all_trt_dates, 1 as 2yr_trt_less_25d_gap
+            from (
+                 select * , lag(all_trt_dates,1) over(partition by enrolid order by all_trt_dates) as prev_trt_date
+                 from         
+                  (select distinct *  from srivaabg_v4_wamd_dme_trtgap_flags
+                  ) as t 
+                 ) as a
+            where (less_25d_gap = 1)
+            order by enrolid, all_trt_dates
+            ) as b
+        --group by b.enrolid, b.2yr_trt_less_21d_gap   
+        ) as g
+    where ranking = 1 
+    group by enrolid, 2yr_trt_less_25d_gap, 2yr_trt_less_25d_gap_date
+    ) as b
+on a.enrolid = b.enrolid
+left join
+    (
+    select enrolid, 2yr_trt_less_21d_gap, 2yr_trt_less_21d_gap_date, min(cons_datediff) as cons_datediff
+    from
+        (
+        select b.enrolid, b.2yr_trt_less_21d_gap, cons_datediff, b.prev_trt_date as 2yr_trt_less_21d_gap_date
+                    , rank() over (partition by enrolid order by prev_trt_date)as ranking
+                                                
+        from
+            (
+            select a.enrolid, a.prev_trt_date, cons_datediff, a.all_trt_dates, 1 as 2yr_trt_less_21d_gap
+            from (
+                 select * , lag(all_trt_dates,1) over(partition by enrolid order by all_trt_dates) as prev_trt_date
+                 from         
+                  (select distinct *  from srivaabg_v4_wamd_dme_trtgap_flags
+                  ) as t 
+                 ) as a
+            where (less_21d_gap = 1)
+            order by enrolid, all_trt_dates
+            ) as b
+        --group by b.enrolid, b.2yr_trt_less_21d_gap   
+        ) as g
+    where ranking = 1 
+    group by enrolid, 2yr_trt_less_21d_gap, 2yr_trt_less_21d_gap_date
+    ) as c
+on a.enrolid = c.enrolid
+left join
+    (
+    select enrolid, 2yr_trt_less_15d_gap, 2yr_trt_less_15d_gap_date, min(cons_datediff) as cons_datediff
+    from
+        (
+        select b.enrolid, b.2yr_trt_less_15d_gap, cons_datediff, b.prev_trt_date as 2yr_trt_less_15d_gap_date
+                    , rank() over (partition by enrolid order by prev_trt_date)as ranking
+                                                
+        from
+            (
+            select a.enrolid, a.prev_trt_date, cons_datediff, a.all_trt_dates, 1 as 2yr_trt_less_15d_gap
+            from (
+                 select * , lag(all_trt_dates,1) over(partition by enrolid order by all_trt_dates) as prev_trt_date
+                 from         
+                  (select distinct *  from srivaabg_v4_wamd_dme_trtgap_flags
+                  ) as t 
+                 ) as a
+            where (less_15d_gap = 1)
+            order by enrolid, all_trt_dates
+            ) as b
+        --group by b.enrolid, b.2yr_trt_less_15d_gap   
+        ) as g
+    where ranking = 1 
+    group by enrolid, 2yr_trt_less_15d_gap, 2yr_trt_less_15d_gap_date
+    ) as d
+on a.enrolid = d.enrolid
+
+;
+
+
+select * from srivaabg_v4_wamd_dme_disc_np_flags_so;
+
+drop table if exists srivaabg_v4_av_demographics_so;
+
+create table srivaabg_v4_av_demographics_so as
+select * 
+from
+    (
+    select d.*, case when c.region = '1' then 'NorthEast'
+                     when c.region = '2' then 'North Central'
+                     when c.region = '3' then 'South'
+                     when c.region = '4' then 'West'
+                     when c.region = '5' then 'Missing/Unknown'
+                     when c.region ilike '%,%' then 'Missing/Unknown'
+                     else 'Missing/Unknown'
+                     end as region_grp
+                     
+              , case when c.plantyp = '1' then 'BasicMajor medical'
+                     when c.plantyp = '2' then 'Comprehensive'
+                     when c.plantyp = '3' then 'EPO'
+                     when c.plantyp = '4' then 'HMO'
+                     when c.plantyp = '5' then 'POS'
+                     when c.plantyp = '6' then 'PPO'
+                     when c.plantyp = '7' then 'POS with capitation'
+                     when c.plantyp = '8' then 'CDHP'
+                     when c.plantyp = '9' then 'HDHP'
+                     when c.plantyp ilike '%,%' then 'Missing/Unknown'
+                     else 'Missing/Unknown'
+                     end as plantyp_grp
+              , case when c.eestatu = '1' then 'Active Full time'
+                     when c.eestatu = '2' then 'Active Part time or Seasonal'
+                     when c.eestatu = '3' then 'Early Retiree'
+                     when c.eestatu = '4' then 'Medical eligible retiree'
+                     when c.eestatu = '5' then 'Retiree (Status Unknown)'
+                     when c.eestatu = '6' then 'COBRA continuee'
+                     when c.eestatu = '7' then 'Long term Disability'
+                     when c.eestatu = '8' then 'Surviving Spouse/Depend'
+                     when c.eestatu = '9' then 'Other/Unknown'
+                     when c.eestatu ilike '%,%' then 'Missing/Unknown'
+                     else 'Missing/Unknown'
+                     end as eestatu_grp
+              , case when d.age_avegf between 18 and 39 then '18-39'
+                     when d.age_avegf between 40 and 64 then '40-64'
+                     when d.age_avegf between 65 and 74 then '65-74'
+                     when d.age_avegf >= 75 then '75+'
+                     else 'Missing/Unknown'
+                     end as age_grp
+              , case when d.cci = 0 then '0'
+                     when d.cci = 1 then '1'
+                     when d.cci = 2 then '2'
+                     when d.cci >= 3 then '3+' 
+                     else 'Missing/Unknown'
+                     end as cci_grp
+              , case when d.new_cci = 0 then '0'
+                     when d.new_cci = 1 then '1'
+                     when d.new_cci = 2 then '2'
+                     when d.new_cci >= 3 then '3+' 
+                     else 'Missing/Unknown'
+                     end as new_cci_grp   
+              
+              
+from srivaabg_v4_bilateral_flags_so as d
+left join
+    (
+    select a.enrolid, a.index_avegf, group_concat(distinct cast(b.region as varchar),',') as region
+                                           , group_concat(distinct cast(b.plantyp as varchar),',') as plantyp
+                                           , group_concat(distinct cast(b.eestatu as varchar),',') as eestatu
+    from srivaabg_v4_bilateral_flags_so as a
+    inner join
+    (
+        select enrolid, svcdate, region, plantyp, eestatu
+        from src_marketscan.ccae_mdcr_o
+        where svcdate between cast('2011-01-01' as timestamp) and cast('2020-06-30' as timestamp)
+
+        union all
+
+        select enrolid, svcdate, region, plantyp, eestatu
+        from src_marketscan.ccae_mdcr_s
+        where svcdate between cast('2011-01-01' as timestamp) and cast('2020-06-30' as timestamp)
+
+        union all
+
+        select enrolid, svcdate, region, plantyp, eestatu
+        from src_marketscan.ccae_mdcr_d
+        where svcdate between cast('2011-01-01' as timestamp) and cast('2020-06-30' as timestamp)
+
+    ) as b
+    on a.enrolid = b.enrolid
+    and a.index_avegf = b.svcdate
+    group by a.enrolid, a.index_avegf
+    ) as c
+on d.enrolid = c.enrolid
+) as e
+;
+
+
+select diag, count(*), count(distinct enrolid) from srivaabg_v4_av_demographics_so
+where distinct_inj > 3
+group by diag
+
+--diag	count(*)	count(distinct enrolid)
+--WAMD	35025	35025
+--DME	20413	20413
+
+
+select count(*), count(distinct enrolid) from srivaabg_v4_av_demographics_so
+where distinct_inj > 3 and diag = 'WAMD';
+--35025	    35025
+
+select count(*), count(distinct enrolid) from srivaabg_v4_av_demographics_so
+where diag = 'WAMD';
+
+--51863 	51863
+
+select count(*), count(distinct enrolid) from srivaabg_v4_av_demographics_so
+where diag = 'WAMD' and distinct_inj is null;
+
+select count(*), count(distinct enrolid) from srivaabg_v4_av_demographics_so
+where distinct_inj > 3;
+
+
+
+drop table if exists srivaabg_v4_zip_pov_spec_cnsr_rsn_so ;
+create table srivaabg_v4_zip_pov_spec_cnsr_rsn_so as
+
+select e.*, case when f.stdprov ilike '%,%' then 'Unknown' else f.stdprov end as stdprov_grp
+          , case when f.drug_name ilike '%,%' then 'Eylea' else f.drug_name end as drug_name_grp
+          , case when f.provzip ilike '%,%' then 'Unknown' else f.provzip end as provzip_grp
+          , case when e.datediff_52w <= 24 then 'by 24 months'
+                 when e.datediff_52w <= 30 then 'by 30 months'    
+                 when e.datediff_52w <= 36 then 'by 36 months'
+                 when e.datediff_52w <= 42 then 'by 42 months'
+                 when e.datediff_52w <= 48 then 'by 48 months'
+                 when e.datediff_52w <= 54 then 'by 54 months'
+                 when e.datediff_52w <= 60 then 'by 60 months'
+                 when e.datediff_52w > 60 then 'post 60 months'
+                 else 'Unknown' 
+                 end as datediff_52w_grp
+          , case when e.datediff_26w <= 24 then 'by 24 months'
+                 when e.datediff_26w <= 30 then 'by 30 months'    
+                 when e.datediff_26w <= 36 then 'by 36 months'
+                 when e.datediff_26w <= 42 then 'by 42 months'
+                 when e.datediff_26w <= 48 then 'by 48 months'
+                 when e.datediff_26w <= 54 then 'by 54 months'
+                 when e.datediff_26w <= 60 then 'by 60 months'
+                 when e.datediff_26w > 60 then 'post 60 months'
+                 else 'Unknown' 
+                 end as datediff_26w_grp 
+          , case when e.event_censor_var_52w = 1 then '52 weeks gap'
+                 when e.event_censor_var_52w = 0 and dat_52w = '2020-06-30' then 'Reached study end'
+                 when e.event_censor_var_52w = 0 and dat_52w < '2020-06-30' then 'Disenrolment'
+                 else 'Unknown'
+                 end as censor_reason_52w
+          , case when e.event_censor_var_26w = 1 then '26 weeks gap'
+                 when e.event_censor_var_26w = 0 and dat_26w = '2020-06-30' then 'Reached study end'
+                 when e.event_censor_var_26w = 0 and dat_26w < '2020-06-30' then 'Disenrolment'
+                 else 'Unknown'
+                 end as censor_reason_26w       
+          , case when f.sex = '1' then 'Male' else 'Female' end as gender          
+from srivaabg_v4_av_demographics_so as e
+left join
+    (
+    select c.enrolid, c.sex, c.stdprov, c.provzip, group_concat(distinct cast(d.drug_name as varchar),',') as drug_name
+    from
+        (
+        select a.enrolid, b.sex, group_concat(distinct cast(b.stdprov as varchar),',') as stdprov
+                        , group_concat(distinct cast(b.provzip as varchar),',') as provzip
+        from srivaabg_v4_av_demographics_so as a
+        left join
+            (
+            select distinct c.enrolid, d.index_avegf, c.sex, c.stdprov, c.provzip
+            from 
+                (
+                select enrolid, svcdate, sex, cast(stdprov as varchar) as stdprov, cast(provzip as varchar) as provzip  
+                from src_marketscan.ccae_mdcr_o as a
+                union
+                select enrolid, svcdate, sex, cast(stdprov as varchar) as stdprov, cast(provzip as varchar) as provzip  
+                from src_marketscan.ccae_mdcr_s as b
+                union 
+                select enrolid, svcdate, sex, 'NA' as std_prov, 'NA' as provzip 
+                from src_marketscan.ccae_mdcr_d as b
+                ) as c
+            join srivaabg_v4_av_demographics_so as d
+            on c.enrolid = d.enrolid
+            and d.index_avegf = c.svcdate
+            ) as b
+        on a.enrolid = b.enrolid
+        group by a.enrolid, b.sex
+        ) as c
+    left join
+        (
+        select distinct a.enrolid, a.index_avegf, b.drug_name
+        from srivaabg_v4_av_demographics_so as a
+        left join srivaabg_v4_wamd_dme_pat_antivegf as b
+        on a.enrolid = b.enrolid
+        and a.index_avegf = b.avegf_date
+        ) as d
+    on c.enrolid = d.enrolid
+    group by c.enrolid, c.sex, c.stdprov, c.provzip
+    ) as f
+on e.enrolid = f.enrolid;
+
+
+
+
+select * from biswaso7_wamddme_rerun_patientlevel_table_attr6a_pst2yr_gapflags_gapdates_injfreq_dtend;
