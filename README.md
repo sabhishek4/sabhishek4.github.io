@@ -15,14 +15,25 @@ Following sample codes are added on this page to showcase programming capabiliti
 # R Sample
 # Python Sample
 
-1. **SQL sample** - A code for extracting patients with wAMD and DME diagnosis and subsequently adding features which are required to perform survival analysis on extracted patients 
+1. **SQL sample** 
+ 
+   A code for extracting patients with wAMD and DME diagnosis and subsequently adding features which are required to perform survival analysis 
+   on extracted patients 
 
-[Link](https://raw.githubusercontent.com/sabhishek4/sabhishek4.github.io/main/SQL%20sample%20code%20-%20data%20manipulation.txt)
+   [Link](https://raw.githubusercontent.com/sabhishek4/sabhishek4.github.io/main/SQL%20sample%20code%20-%20data%20manipulation.txt)
 
-2. **R sample** - A code of a user defined function in R, which can be used to generate quick descriptive reports
-3. **Python sample** - A sample of work in progress project which includes implementation of PCA and clustering to identify high risk Heart failure patients
+2. **R sample** 
+   
+   A code of a user defined function in R, which can be used to generate quick descriptive reports
+   
+   [Link](https://raw.githubusercontent.com/sabhishek4/sabhishek4.github.io/main/descriptive_macro%20v3)
+   
+3. **Python sample** 
+   
+   A sample of work in progress project which includes implementation of PCA and clustering to identify high risk Heart failure patients
+   
+   [Link](https://github.com/sabhishek4/sabhishek4.github.io/blob/98934dc30bafe3bd3775542452a0ef6ccd048501/Clustering%20in%20Python.ipynb)
 
-**Bold** and _Italic_ and `Code` text
 
 [Link](url) and ![Image](src)
 ```
