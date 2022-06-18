@@ -17,7 +17,7 @@ Following sample codes are added on this page to showcase programming capabiliti
 
 1. **SQL sample** - A code for extracting patients with wAMD and DME diagnosis and subsequently adding features which are required to perform survival analysis on extracted patients 
 
-[Link](https://github.com/sabhishek4/sabhishek4.github.io/blob/main/SQL%20sample%20code%20-%20data%20manipulation.txt)
+[Link](https://raw.githubusercontent.com/sabhishek4/sabhishek4.github.io/main/SQL%20sample%20code%20-%20data%20manipulation.txt)
 
 2. **R sample** - A code of a user defined function in R, which can be used to generate quick descriptive reports
 3. **Python sample** - A sample of work in progress project which includes implementation of PCA and clustering to identify high risk Heart failure patients
