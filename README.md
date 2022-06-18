@@ -11,14 +11,14 @@ Markdown is a lightweight and easy-to-use syntax for styling your writing. It in
 ```markdown
 Following sample codes are added on this page to showcase programming capabilities to be eligible for HIDS program at GU
 
-# Header 1
-## Header 2
-### Header 3
+# SQL Sample
+# R Sample
+# Python Sample
 
-- Bulleted
-- List
+1. **SQL sample** - A code for extracting patients with wAMD and DME diagnosis and subsequently adding features which are required to perform survival analysis on extracted patients 
 
-1. **SQL sample** - A code for extracting patients with wAMD and DME diagnosis and subsequently adding features which are required to perform survival analysis on extracted patients [https://github.com/sabhishek4/sabhishek4.github.io/blob/main/SQL%20sample%20code%20-%20data%20manipulation.txt](url)
+[Link](https://github.com/sabhishek4/sabhishek4.github.io/blob/main/SQL%20sample%20code%20-%20data%20manipulation.txt)
+
 2. **R sample** - A code of a user defined function in R, which can be used to generate quick descriptive reports
 3. **Python sample** - A sample of work in progress project which includes implementation of PCA and clustering to identify high risk Heart failure patients
 
